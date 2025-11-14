@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
@@ -32,13 +33,13 @@ public class AlquilerController {
 
     @GetMapping("/mis-alquileres")
     public String misAlquileres(Model model, HttpSession session) {
-        Long usuarioId = obtenerUsuarioId(session);
-        model.addAttribute("alquileres", alquilerService.getByUsuarioConContenido(usuarioId));
-        // Usuario logueado para el header
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuarioLogueado != null) {
-            model.addAttribute("usuarioLogueado", usuarioLogueado);
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        if (usuarioLogueado == null) {
+            return "redirect:/login";
         }
+        Long usuarioId = usuarioLogueado.getId();
+        model.addAttribute("alquileres", alquilerService.getByUsuarioConContenido(usuarioId));
+        model.addAttribute("usuarioLogueado", usuarioLogueado);
         return "mis-alquileres";
     }
 
@@ -48,7 +49,12 @@ public class AlquilerController {
                            @RequestParam(value = "metodoPago", required = false) String metodoPago,
                            HttpSession session,
                            RedirectAttributes ra) {
-        Long usuarioId = obtenerUsuarioId(session);
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        if (usuarioLogueado == null) {
+            ra.addFlashAttribute("error", "Debes iniciar sesión para alquilar contenido");
+            return "redirect:/login";
+        }
+        Long usuarioId = usuarioLogueado.getId();
         try {
             alquilerService.rent(usuarioId, contenidoId, periodo, metodoPago);
             ra.addFlashAttribute("msg", "Alquiler confirmado");
@@ -66,9 +72,28 @@ public class AlquilerController {
 
     @PostMapping(value = "/alquiler/estado", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<java.util.Map<String,Object>> estadoAlquiler(@RequestBody java.util.Map<String,Object> body, HttpSession session) {
-        Long usuarioId = obtenerUsuarioId(session);
-        java.util.List<?> raw = (java.util.List<?>) body.getOrDefault("ids", java.util.Collections.emptyList());
+    public ResponseEntity<java.util.Map<String,Object>> estadoAlquiler(@RequestBody java.util.Map<String,Object> payload, HttpSession session) {
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        if (usuarioLogueado == null) {
+            java.util.Map<String,Object> err = new java.util.HashMap<>();
+            err.put("status", "ERROR");
+            err.put("message", "Sesión expirada o no autenticada");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+        }
+        Long usuarioId = usuarioLogueado.getId();
+        java.util.Map<String,Object> respuesta = new java.util.HashMap<>();
+        java.util.Set<Long> solicitados = new java.util.HashSet<>();
+        if (payload != null) {
+            Object idsPayload = payload.get("ids");
+            if (idsPayload instanceof java.util.List<?>) {
+                for (Object value : (java.util.List<?>) idsPayload) {
+                    try {
+                        solicitados.add(Long.valueOf(String.valueOf(value)));
+                    } catch (Exception ignored) {}
+                }
+            }
+            respuesta.put("rawPayload", payload);
+        }
         java.util.Set<Long> activos = new java.util.HashSet<>();
         try {
             java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> lista = alquilerService.getByUsuarioConContenido(usuarioId);
@@ -79,17 +104,25 @@ public class AlquilerController {
                 }
             }
         } catch (Exception ignored) {}
-        java.util.Map<String,Object> resp = new java.util.HashMap<>();
-        resp.put("activos", activos.stream().map(String::valueOf).toArray());
-        return ResponseEntity.ok(resp);
+        java.util.Set<String> activosIds = new java.util.HashSet<>();
+        java.util.stream.Stream<Long> stream = activos.stream();
+        if (!solicitados.isEmpty()) {
+            stream = stream.filter(solicitados::contains);
+        }
+        stream.forEach(id -> activosIds.add(String.valueOf(id)));
+        respuesta.put("activos", activosIds);
+        respuesta.put("requested", solicitados.stream().map(String::valueOf).toArray(String[]::new));
+        return ResponseEntity.ok(respuesta);
     }
 
-    private Long obtenerUsuarioId(HttpSession session) {
-        Object u = session != null ? session.getAttribute("usuario") : null;
-        if (u instanceof Usuario) {
-            return (long) ((Usuario) u).getId();
+    private Usuario obtenerUsuarioSesion(HttpSession session) {
+        if (session == null) {
+            return null;
         }
-        // Fallback temporal mientras no haya login real
-        return 1L;
+        Object usuario = session.getAttribute("usuarioLogueado");
+        if (usuario instanceof Usuario) {
+            return (Usuario) usuario;
+        }
+        return null;
     }
 }

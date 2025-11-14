@@ -33,7 +33,11 @@ public class ListaController {
 
     @GetMapping("/mi-lista")
     public String miLista(Model model, HttpSession session) {
-        Long usuarioId = obtenerUsuarioId(session);
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        if (usuarioLogueado == null) {
+            return "redirect:/login";
+        }
+        Long usuarioId = usuarioLogueado.getId();
         Lista lista = obtenerOCrearLista(usuarioId, "mi-lista", "Favoritos del usuario");
         List<Contenido> contenidos = lista != null ? listaService.getContenidoByLista(lista.getId()) : java.util.Collections.emptyList();
         model.addAttribute("contenidos", contenidos);
@@ -43,21 +47,18 @@ public class ListaController {
         if (!model.containsAttribute("misResenas")) model.addAttribute("misResenas", java.util.Collections.emptyList());
         if (!model.containsAttribute("historialAlquileres")) model.addAttribute("historialAlquileres", java.util.Collections.emptyList());
         // Usuario logueado para el header
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuarioLogueado != null) {
-            model.addAttribute("usuarioLogueado", usuarioLogueado);
-        }
+        model.addAttribute("usuarioLogueado", usuarioLogueado);
         return "mi-lista";
     }
 
     @GetMapping("/para-ver")
     public String paraVer(Model model, HttpSession session) {
-        // Usuario logueado para el header
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuarioLogueado != null) {
-            model.addAttribute("usuarioLogueado", usuarioLogueado);
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        if (usuarioLogueado == null) {
+            return "redirect:/login";
         }
-        Long usuarioId = obtenerUsuarioId(session);
+        model.addAttribute("usuarioLogueado", usuarioLogueado);
+        Long usuarioId = usuarioLogueado.getId();
         Lista lista = obtenerOCrearLista(usuarioId, "para-ver", "Contenido pendiente por ver");
         List<Contenido> contenidos = lista != null ? listaService.getContenidoByLista(lista.getId()) : java.util.Collections.emptyList();
         model.addAttribute("contenidos", contenidos);
@@ -70,7 +71,13 @@ public class ListaController {
     public ResponseEntity<Map<String,Object>> addContenido(@RequestParam("contenidoId") Long contenidoId, @RequestParam("lista") String listaNombre, HttpSession session) {
         Map<String,Object> resp = new HashMap<>();
         try {
-            Long usuarioId = obtenerUsuarioId(session);
+            Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+            if (usuarioLogueado == null) {
+                resp.put("status", "ERROR");
+                resp.put("message", "Sesión expirada o no autenticada");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
+            }
+            Long usuarioId = usuarioLogueado.getId();
             Lista lista = obtenerOCrearLista(usuarioId, listaNombre, "Generada automaticamente");
             if (lista != null) {
                 listaService.addContenido(lista.getId(), contenidoId);
@@ -94,7 +101,13 @@ public class ListaController {
     public ResponseEntity<Map<String,Object>> removeContenido(@RequestParam("contenidoId") Long contenidoId, @RequestParam("lista") String listaNombre, HttpSession session) {
         Map<String,Object> resp = new HashMap<>();
         try {
-            Long usuarioId = obtenerUsuarioId(session);
+            Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+            if (usuarioLogueado == null) {
+                resp.put("status", "ERROR");
+                resp.put("message", "Sesión expirada o no autenticada");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
+            }
+            Long usuarioId = usuarioLogueado.getId();
             Lista lista = listaService.getByUsuario(usuarioId).stream().filter(l -> l.getNombre().equalsIgnoreCase(listaNombre)).findFirst().orElse(null);
             if (lista != null) {
                 listaService.removeContenido(lista.getId(), contenidoId);
@@ -117,7 +130,14 @@ public class ListaController {
     @ResponseBody
     public ResponseEntity<Map<String,Object>> estadoListas(@RequestBody Map<String,Object> body, HttpSession session) {
         try {
-            Long usuarioId = obtenerUsuarioId(session);
+            Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+            if (usuarioLogueado == null) {
+                Map<String,Object> err = new HashMap<>();
+                err.put("status", "ERROR");
+                err.put("message", "Sesión expirada o no autenticada");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+            }
+            Long usuarioId = usuarioLogueado.getId();
             java.util.List<?> ids = (java.util.List<?>) body.getOrDefault("ids", java.util.Collections.emptyList());
             java.util.List<Long> idsLong = new java.util.ArrayList<>();
             for (Object o : ids) {
@@ -160,11 +180,14 @@ public class ListaController {
         return lista;
     }
 
-    private Long obtenerUsuarioId(HttpSession session) {
-        Object u = session != null ? session.getAttribute("usuario") : null;
-        if (u instanceof Usuario) {
-            return (long) ((Usuario) u).getId();
+    private Usuario obtenerUsuarioSesion(HttpSession session) {
+        if (session == null) {
+            return null;
         }
-        return 1L;
+        Object usuario = session.getAttribute("usuarioLogueado");
+        if (usuario instanceof Usuario) {
+            return (Usuario) usuario;
+        }
+        return null;
     }
 }

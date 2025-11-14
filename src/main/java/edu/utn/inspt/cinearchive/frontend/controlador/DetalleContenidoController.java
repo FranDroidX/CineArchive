@@ -33,7 +33,15 @@ public class DetalleContenidoController {
             return "redirect:/catalogo";
         }
         Contenido c = contenidoOpt.get();
-        Long usuarioId = obtenerUsuarioId(session);
+        Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        Long usuarioId = null;
+        if (usuarioLogueado != null) {
+            model.addAttribute("usuarioLogueado", usuarioLogueado);
+            usuarioId = usuarioLogueado.getId();
+        }
+        if (usuarioId == null) {
+            return "redirect:/login";
+        }
         boolean alquilado = false;
         try { alquilado = alquilerService.existeAlquilerActivo(usuarioId, id); } catch (Exception ignored) {}
         Integer selectedSeason = null;
@@ -44,7 +52,7 @@ public class DetalleContenidoController {
         if (c.getTipo() == edu.utn.inspt.cinearchive.backend.modelo.Contenido.Tipo.SERIE) {
             String titulo = c.getTitulo();
             String prefix = titulo;
-            java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(.*?)(?: - Temporada \\d+)$").matcher(titulo);
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(.*?)( - Temporada \\d+)?$").matcher(titulo);
             if (m.find()) {
                 prefix = m.group(1);
             }
@@ -94,19 +102,17 @@ public class DetalleContenidoController {
             }
         } catch (Exception ignore) {}
         model.addAttribute("masDelDirector", masDelDirector);
-        // Usuario logueado para el header
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuarioLogueado != null) {
-            model.addAttribute("usuarioLogueado", usuarioLogueado);
-        }
         return "detalle";
     }
 
-    private Long obtenerUsuarioId(HttpSession session) {
-        Object u = session != null ? session.getAttribute("usuario") : null;
-        if (u instanceof Usuario) {
-            return (long) ((Usuario) u).getId();
+    private Usuario obtenerUsuarioSesion(HttpSession session) {
+        if (session == null) {
+            return null;
         }
-        return 1L;
+        Object usuario = session.getAttribute("usuarioLogueado");
+        if (usuario instanceof Usuario) {
+            return (Usuario) usuario;
+        }
+        return null;
     }
 }

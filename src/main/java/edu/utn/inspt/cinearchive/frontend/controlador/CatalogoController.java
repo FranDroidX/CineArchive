@@ -54,17 +54,20 @@ public class CatalogoController {
         model.addAttribute("totalPages", totalPages);
 
         // IDs alquilados activos para el usuario (para marcar estado en tarjetas)
-        Long usuarioId = obtenerUsuarioId(session);
+        edu.utn.inspt.cinearchive.backend.modelo.Usuario usuarioLogueado = obtenerUsuarioSesion(session);
+        Long usuarioId = usuarioLogueado != null ? usuarioLogueado.getId() : null;
         java.util.Set<Long> alquilados = new java.util.HashSet<>();
-        try {
-            java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> ads = alquilerService.getByUsuarioConContenido(usuarioId);
-            java.time.LocalDateTime now = java.time.LocalDateTime.now();
-            for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle d : ads) {
-                if (d.getContenidoId() != null && d.getFechaFin() != null && d.getFechaFin().isAfter(now) && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
-                    alquilados.add(d.getContenidoId());
+        if (usuarioId != null) {
+            try {
+                java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> ads = alquilerService.getByUsuarioConContenido(usuarioId);
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle d : ads) {
+                    if (d.getContenidoId() != null && d.getFechaFin() != null && d.getFechaFin().isAfter(now) && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
+                        alquilados.add(d.getContenidoId());
+                    }
                 }
-            }
-        } catch (Exception ignore) {}
+            } catch (Exception ignore) {}
+        }
         java.util.Map<Long, Boolean> alquiladoMap = new java.util.HashMap<>();
         for (Long idC : alquilados) alquiladoMap.put(idC, Boolean.TRUE);
         model.addAttribute("alquiladoMap", alquiladoMap);
@@ -88,8 +91,6 @@ public class CatalogoController {
         } catch (Exception ignore) {}
 
         // Usuario logueado para el header
-        edu.utn.inspt.cinearchive.backend.modelo.Usuario usuarioLogueado =
-            (edu.utn.inspt.cinearchive.backend.modelo.Usuario) session.getAttribute("usuarioLogueado");
         if (usuarioLogueado != null) {
             model.addAttribute("usuarioLogueado", usuarioLogueado);
         }
@@ -97,11 +98,14 @@ public class CatalogoController {
         return "catalogo";
     }
 
-    private Long obtenerUsuarioId(HttpSession session) {
-        Object u = session != null ? session.getAttribute("usuario") : null;
-        if (u instanceof edu.utn.inspt.cinearchive.backend.modelo.Usuario) {
-            return (long) ((edu.utn.inspt.cinearchive.backend.modelo.Usuario) u).getId();
+    private edu.utn.inspt.cinearchive.backend.modelo.Usuario obtenerUsuarioSesion(HttpSession session) {
+        if (session == null) {
+            return null;
         }
-        return 1L; // usuario por defecto (invitado) para tests locales
+        Object usuario = session.getAttribute("usuarioLogueado");
+        if (usuario instanceof edu.utn.inspt.cinearchive.backend.modelo.Usuario) {
+            return (edu.utn.inspt.cinearchive.backend.modelo.Usuario) usuario;
+        }
+        return null;
     }
 }

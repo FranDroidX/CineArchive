@@ -132,7 +132,7 @@ public class AlquilerRepositoryImpl implements AlquilerRepository {
 
     @Override
     public boolean existsActiveByUsuarioAndContenido(Long usuarioId, Long contenidoId) {
-        String sql = "SELECT COUNT(*) FROM " + T_ALQ + " WHERE usuario_id = ? AND contenido_id = ? AND estado = 'ACTIVO'";
+        String sql = "SELECT COUNT(*) FROM " + T_ALQ + " WHERE usuario_id = ? AND contenido_id = ? AND estado = 'ACTIVO' AND (fecha_fin IS NULL OR fecha_fin > NOW())";
         Integer cnt = jdbcTemplate.queryForObject(sql, Integer.class, usuarioId, contenidoId);
         return cnt != null && cnt > 0;
     }

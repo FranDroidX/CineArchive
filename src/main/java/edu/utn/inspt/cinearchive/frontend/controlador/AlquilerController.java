@@ -38,7 +38,22 @@ public class AlquilerController {
             return "redirect:/login";
         }
         Long usuarioId = usuarioLogueado.getId();
-        model.addAttribute("alquileres", alquilerService.getByUsuarioConContenido(usuarioId));
+
+        // Obtener todos los alquileres y filtrar solo los ACTIVOS (incluyendo expirados)
+        java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> todosAlquileres =
+            alquilerService.getByUsuarioConContenido(usuarioId);
+
+        java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> alquileresActivos =
+            new java.util.ArrayList<>();
+
+        for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle a : todosAlquileres) {
+            // Solo mostrar alquileres en estado ACTIVO (aunque estén expirados)
+            if (a.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
+                alquileresActivos.add(a);
+            }
+        }
+
+        model.addAttribute("alquileres", alquileresActivos);
         model.addAttribute("usuarioLogueado", usuarioLogueado);
         return "mis-alquileres";
     }

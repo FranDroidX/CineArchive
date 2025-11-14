@@ -17,6 +17,8 @@ public class AlquilerDetalle {
     private boolean visto;
     private long diasRestantes;
     private int progresoPct;
+    private long segundosRestantes; // Para cálculo preciso de tiempo restante
+    private boolean expirado; // Bandera para la UI
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,4 +46,8 @@ public class AlquilerDetalle {
     public void setDiasRestantes(long diasRestantes) { this.diasRestantes = diasRestantes; }
     public int getProgresoPct() { return progresoPct; }
     public void setProgresoPct(int progresoPct) { this.progresoPct = progresoPct; }
+    public long getSegundosRestantes() { return segundosRestantes; }
+    public void setSegundosRestantes(long segundosRestantes) { this.segundosRestantes = segundosRestantes; }
+    public boolean isExpirado() { return expirado; }
+    public void setExpirado(boolean expirado) { this.expirado = expirado; }
 }

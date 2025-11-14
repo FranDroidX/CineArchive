@@ -22,7 +22,7 @@
         <c:when test="${not empty alquileres}">
             <div class="movie-row no-select">
                 <c:forEach var="a" items="${alquileres}">
-                    <div class="movie-card" id="cont-${a.contenidoId}">
+                    <div class="movie-card" id="cont-${a.contenidoId}" data-contenido-id="${a.contenidoId}">
                         <c:choose>
                             <c:when test="${empty a.imagenUrlContenido}">
                                 <c:url var="imgSrc" value="/img/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_FMjpg_UX1000_.jpg"/>
@@ -38,24 +38,35 @@
                         <div class="movie-info">
                             <div class="movie-title">${a.tituloContenido}</div>
                             <div class="alquiler-meta">
-                                <span class="badge-estado ${a.estado == 'ACTIVO' ? 'estado-activo' : (a.estado == 'FINALIZADO' ? 'estado-finalizado' : 'estado-cancelado')}">${a.estado}</span>
-                                <c:if test="${a.diasRestantes lt 0}"><span class="badge-expirado">Vencido</span></c:if>
+                                <c:choose>
+                                    <c:when test="${a.expirado}">
+                                        <span class="badge-estado estado-expirado">EXPIRADO</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge-estado ${a.estado == 'ACTIVO' ? 'estado-activo' : (a.estado == 'FINALIZADO' ? 'estado-finalizado' : 'estado-cancelado')}">${a.estado}</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                             <div class="rental-time">
                                 <c:if test="${a.periodoAlquiler != null}">Periodo: ${a.periodoAlquiler} días</c:if>
-                                <c:choose>
-                                    <c:when test="${a.diasRestantes != null && a.diasRestantes ge 0}"> • Restan ${a.diasRestantes} días</c:when>
-                                    <c:otherwise> • Restan 0 días</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <div class="progress-wrapper">
-                                <div class="progress-bar"><div class="progress-fill" style="width:${a.progresoPct}%;"></div></div>
-                                <div class="progress-text">${a.progresoPct}% transcurrido</div>
+                                <span class="tiempo-restante" data-segundos="${a.segundosRestantes}" data-alquiler-id="${a.id}">
+                                    <c:choose>
+                                        <c:when test="${!a.expirado}"> • Restan ${a.diasRestantes} días</c:when>
+                                        <c:otherwise> • Expirado hace ${-a.diasRestantes} día(s)</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
                             <div class="movie-actions">
-                                <div class="details-wrapper">
-                                    <button class="btn-secondary details-btn" onclick="window.location.href='${pageContext.request.contextPath}/contenido/${a.contenidoId}'">Ver detalles</button>
-                                </div>
+                                <c:choose>
+                                    <c:when test="${a.expirado}">
+                                        <button class="rent-btn" onclick="window.location.href='${pageContext.request.contextPath}/contenido/${a.contenidoId}'">🔄 Extender Alquiler</button>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="details-wrapper">
+                                            <button class="btn-secondary details-btn" onclick="window.location.href='${pageContext.request.contextPath}/contenido/${a.contenidoId}'">Ver detalles</button>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </div>

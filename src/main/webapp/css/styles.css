@@ -631,6 +631,7 @@ h2 {
 .estado-activo { background:rgba(40,167,69,.15); color:var(--success-color); border:1px solid var(--success-color); }
 .estado-finalizado { background:rgba(108,117,125,.15); color:#adb5bd; border:1px solid #6c757d; }
 .estado-cancelado { background:rgba(220,53,69,.15); color:var(--danger-color); border:1px solid var(--danger-color); }
+.estado-expirado { background:rgba(255,193,7,.2); color:var(--warning-color); border:1px solid var(--warning-color); }
 .badge-expirado { background:rgba(255,193,7,.2); color:var(--warning-color); padding:4px 8px; border-radius:12px; font-size:11px; border:1px solid var(--warning-color); margin-left:6px; }
 
 .rating-large {
@@ -1720,6 +1721,9 @@ footer {
 .password-match.no-match {
     color: var(--danger-color);
 }
+
+/* Utilidad para accesibilidad: ocultar visualmente pero disponible para lectores de pantalla */
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 /* Responsive */
 @media (max-width: 768px) {

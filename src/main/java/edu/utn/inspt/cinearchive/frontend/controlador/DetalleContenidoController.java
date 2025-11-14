@@ -43,7 +43,36 @@ public class DetalleContenidoController {
             return "redirect:/login";
         }
         boolean alquilado = false;
-        try { alquilado = alquilerService.existeAlquilerActivo(usuarioId, id); } catch (Exception ignored) {}
+        boolean alquilerExpirado = false;
+        Long diasRestantes = null;
+        java.time.LocalDateTime fechaFin = null;
+        java.util.Date fechaFinDate = null;
+        Long segundosRestantes = null;
+
+        try {
+            alquilado = alquilerService.existeAlquilerActivo(usuarioId, id);
+
+            // Verificar si hay un alquiler expirado para este contenido
+            java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> alquileres =
+                alquilerService.getByUsuarioConContenido(usuarioId);
+            for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle a : alquileres) {
+                if (a.getContenidoId() != null && a.getContenidoId().equals(id)) {
+                    if (a.isExpirado() && a.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
+                        alquilerExpirado = true;
+                    }
+                    if (!a.isExpirado() && alquilado) {
+                        diasRestantes = a.getDiasRestantes();
+                        fechaFin = a.getFechaFin();
+                        segundosRestantes = a.getSegundosRestantes();
+                        if (fechaFin != null) {
+                            fechaFinDate = java.util.Date.from(fechaFin.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
+
         Integer selectedSeason = null;
         if (season != null && c.getTemporadas() != null && season >= 1 && season <= c.getTemporadas()) {
             selectedSeason = season;
@@ -66,13 +95,23 @@ public class DetalleContenidoController {
             java.util.Set<Long> seasonIds = new java.util.HashSet<>();
             for (Contenido sc : seasons) { seasonIds.add(sc.getId()); }
             for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle d : lista) {
-                if (d.getContenidoId() != null && seasonIds.contains(d.getContenidoId()) && d.getFechaFin() != null && d.getFechaFin().isAfter(now) && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
+                if (d.getContenidoId() != null
+                        && seasonIds.contains(d.getContenidoId())
+                        && d.getFechaFin() != null
+                        && d.getFechaFin().isAfter(now)
+                        && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO
+                        && !d.isExpirado()) {
                     seasonActiveMap.put(d.getContenidoId(), Boolean.TRUE);
                 }
             }
         } catch (Exception ignore) {}
         model.addAttribute("contenido", c);
         model.addAttribute("alquilado", alquilado);
+        model.addAttribute("alquilerExpirado", alquilerExpirado);
+        model.addAttribute("diasRestantes", diasRestantes);
+        model.addAttribute("fechaFin", fechaFin);
+        model.addAttribute("fechaFinDate", fechaFinDate);
+        model.addAttribute("segundosRestantes", segundosRestantes);
         model.addAttribute("selectedSeason", selectedSeason);
         model.addAttribute("seasons", seasons);
         model.addAttribute("seasonActiveMap", seasonActiveMap);

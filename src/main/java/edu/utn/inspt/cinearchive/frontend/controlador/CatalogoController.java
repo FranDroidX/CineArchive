@@ -62,7 +62,7 @@ public class CatalogoController {
                 java.util.List<edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle> ads = alquilerService.getByUsuarioConContenido(usuarioId);
                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
                 for (edu.utn.inspt.cinearchive.backend.modelo.AlquilerDetalle d : ads) {
-                    if (d.getContenidoId() != null && d.getFechaFin() != null && d.getFechaFin().isAfter(now) && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO) {
+                    if (d.getContenidoId() != null && d.getFechaFin() != null && d.getFechaFin().isAfter(now) && d.getEstado() == edu.utn.inspt.cinearchive.backend.modelo.Alquiler.Estado.ACTIVO && !d.isExpirado()) {
                         alquilados.add(d.getContenidoId());
                     }
                 }

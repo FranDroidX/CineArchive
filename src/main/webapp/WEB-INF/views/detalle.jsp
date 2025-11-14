@@ -48,11 +48,55 @@
                 </div>
                 <div class="rental-section">
                     <c:choose>
+                        <c:when test="${alquilerExpirado}">
+                            <div class="availability" style="margin:0 0 15px 0;">
+                                <p style="margin:0; font-size:18px; font-weight:bold; color:var(--warning-color);">⚠️ Alquiler Expirado</p>
+                                <p style="margin:8px 0 12px 0; color:#aaa; font-size:13px;">Tu alquiler ha vencido. Puedes renovarlo para seguir disfrutando de este contenido.</p>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="rent-btn-large" style="flex:1;" onclick="window.location.href='${pageContext.request.contextPath}/mis-alquileres'">Ver mis alquileres</button>
+                                </div>
+                            </div>
+                            <h3 style="margin:24px 0 12px 0; color:var(--text-color);">🔄 Extender Alquiler</h3>
+                            <form action="${pageContext.request.contextPath}/alquilar" method="post">
+                                <input type="hidden" name="contenidoId" value="${contenido.id}" />
+                                <div class="rental-options">
+                                    <div class="rental-option">
+                                        <input type="radio" name="periodo" id="rental3" value="3" checked />
+                                        <label for="rental3">
+                                            <span class="rental-duration">3 días</span>
+                                            <span class="rental-price-large">
+                                                <c:if test="${not empty contenido.precioAlquiler}">$<fmt:formatNumber value="${contenido.precioAlquiler}" minFractionDigits="2" maxFractionDigits="2"/></c:if>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="rental-option">
+                                        <input type="radio" name="periodo" id="rental7" value="7" />
+                                        <label for="rental7">
+                                            <span class="rental-duration">7 días</span>
+                                            <span class="rental-price-large">
+                                                <c:if test="${not empty contenido.precioAlquiler}">$<fmt:formatNumber value="${contenido.precioAlquiler * 2.33}" minFractionDigits="2" maxFractionDigits="2"/></c:if>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="payment-method">
+                                    <label for="metodoPago">Método de pago</label>
+                                    <select id="metodoPago" name="metodoPago">
+                                        <option value="TARJETA">Tarjeta</option>
+                                        <option value="MERCADOPAGO">MercadoPago</option>
+                                        <option value="EFECTIVO">Efectivo</option>
+                                    </select>
+                                </div>
+                                <button class="rent-btn-large" type="submit">🔄 Extender Alquiler</button>
+                            </form>
+                        </c:when>
                         <c:when test="${alquilado}">
                             <div class="availability" style="margin:0 0 15px 0;">
-                                <p style="margin:0; font-size:18px; font-weight:bold; color:var(--success-color);">✔ Alquilado</p>
-                                <c:if test="${not empty diasRestantes}"><p style="margin:4px 0 0 0; color:#aaa; font-size:13px;">Restan ${diasRestantes} días</p></c:if>
-                                <c:if test="${not empty fechaFin}"><p style="margin:2px 0 10px 0; color:#aaa; font-size:13px;">Vence: <fmt:formatDate value="${fechaFin}" pattern="dd/MM/yyyy HH:mm"/></p></c:if>
+                                <p style="margin:0; font-size:18px; font-weight:bold; color:var(--success-color);">✔ Alquilado
+                                    <c:if test="${not empty diasRestantes && diasRestantes le 0}"><span class="badge-expirado">Por vencer</span></c:if>
+                                </p>
+                                <c:if test="${not empty segundosRestantes}"><p class="rental-time"><span id="detalle-tiempo-restante" data-segundos="${segundosRestantes}">Actualizando...</span></p></c:if>
+                                <c:if test="${not empty fechaFinDate}"><p style="margin:2px 0 10px 0; color:#aaa; font-size:13px;">Vence: <fmt:formatDate value="${fechaFinDate}" pattern="dd/MM/yyyy HH:mm"/></p></c:if>
                                 <button class="btn-secondary" onclick="window.location.href='${pageContext.request.contextPath}/mis-alquileres#cont-${contenido.id}'">Ver estado de mi alquiler</button>
                             </div>
                         </c:when>
@@ -231,5 +275,43 @@
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp" />
 <script src="${pageContext.request.contextPath}/js/alquiler.js"></script>
 <script src="${pageContext.request.contextPath}/js/listas.js"></script>
+<script>
+(function(){
+  function formatearTiempoRestante(segundos) {
+    if (segundos < 0) {
+      var segsPositivos = Math.abs(segundos);
+      var dias = Math.floor(segsPositivos / 86400);
+      var horas = Math.floor((segsPositivos % 86400) / 3600);
+      var minutos = Math.floor((segsPositivos % 3600) / 60);
+      if (dias > 0) return 'Expirado hace ' + dias + ' día' + (dias != 1 ? 's' : '');
+      if (horas > 0) return 'Expirado hace ' + horas + ' hora' + (horas != 1 ? 's' : '');
+      if (minutos > 0) return 'Expirado hace ' + minutos + ' minuto' + (minutos != 1 ? 's' : '');
+      return 'Expirado hace ' + segsPositivos + ' segundo' + (segsPositivos != 1 ? 's' : '');
+    } else {
+      var diasPos = Math.floor(segundos / 86400);
+      var horasPos = Math.floor((segundos % 86400) / 3600);
+      var minutosPos = Math.floor((segundos % 3600) / 60);
+      var segs = segundos % 60;
+      if (diasPos > 0) return 'Restan ' + diasPos + ' día' + (diasPos != 1 ? 's' : '');
+      if (horasPos > 0) return 'Restan ' + horasPos + ' hora' + (horasPos != 1 ? 's' : '');
+      if (minutosPos > 0) return 'Restan ' + minutosPos + ' minuto' + (minutosPos != 1 ? 's' : '');
+      return 'Restan ' + segs + ' segundo' + (segs != 1 ? 's' : '');
+    }
+  }
+  function tick(){
+    var span = document.getElementById('detalle-tiempo-restante');
+    if (!span) return;
+    var segIni = parseInt(span.getAttribute('data-segundos'),10);
+    if (isNaN(segIni)) return;
+    if (span._ts0 == null) span._ts0 = Date.now();
+    var trans = Math.floor((Date.now() - span._ts0)/1000);
+    span.textContent = formatearTiempoRestante(segIni - trans);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    tick();
+    setInterval(tick, 1000);
+  });
+})();
+</script>
 </body>
 </html>

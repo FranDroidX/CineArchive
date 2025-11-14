@@ -45,16 +45,17 @@ public class AlquilerServiceImpl implements AlquilerService {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         for (AlquilerDetalle d : lista) {
             if (d.getFechaFin() != null) {
+                long segundos = java.time.Duration.between(now, d.getFechaFin()).getSeconds();
+                d.setSegundosRestantes(segundos);
                 long dias = java.time.Duration.between(now, d.getFechaFin()).toDays();
                 d.setDiasRestantes(dias);
+                d.setExpirado(segundos < 0);
             }
             if (d.getFechaInicio() != null && d.getFechaFin() != null) {
                 long total = java.time.Duration.between(d.getFechaInicio(), d.getFechaFin()).getSeconds();
                 long transcurrido = java.time.Duration.between(d.getFechaInicio(), now).getSeconds();
                 long pct = total > 0 ? Math.min(100, Math.max(0, (transcurrido * 100) / total)) : 0;
-                try {
-                    d.getClass().getMethod("setProgresoPct", int.class).invoke(d, (int) pct);
-                } catch (Exception ignore) { /* si no existe el setter aún */ }
+                d.setProgresoPct((int) pct);
             }
         }
         lista.sort(java.util.Comparator.comparing(AlquilerDetalle::getFechaFin, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
@@ -90,9 +91,43 @@ public class AlquilerServiceImpl implements AlquilerService {
         if (usuarioId == null || contenidoId == null || periodoDias == null || periodoDias <= 0) {
             throw new IllegalArgumentException("Parámetros inválidos para alquiler");
         }
+
+        // Verificar si existe un alquiler activo (no expirado)
         if (alquilerRepository.existsActiveByUsuarioAndContenido(usuarioId, contenidoId)) {
             throw new IllegalStateException("Ya existe un alquiler activo para este contenido");
         }
+
+        // Buscar alquileres expirados y finalizarlos antes de crear uno nuevo
+        java.util.List<Alquiler> todosAlquileres = alquilerRepository.findByUsuarioId(usuarioId);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        int alquileresFinalizados = 0;
+
+        for (Alquiler alq : todosAlquileres) {
+            if (alq.getContenidoId() != null
+                    && alq.getContenidoId().equals(contenidoId)
+                    && alq.getEstado() == Alquiler.Estado.ACTIVO
+                    && alq.getFechaFin() != null
+                    && alq.getFechaFin().isBefore(now)) {
+                // Finalizar el alquiler expirado
+                alq.setEstado(Alquiler.Estado.FINALIZADO);
+                alquilerRepository.update(alq);
+                // Devolver la copia al stock
+                contenidoRepository.updateCopiasDisponibles(contenidoId, +1);
+                alquileresFinalizados++;
+                java.util.logging.Logger.getLogger(AlquilerServiceImpl.class.getName())
+                    .log(java.util.logging.Level.INFO,
+                        "Alquiler ID {0} finalizado automáticamente al extender para contenido {1}",
+                        new Object[]{alq.getId(), contenidoId});
+            }
+        }
+
+        if (alquileresFinalizados > 0) {
+            java.util.logging.Logger.getLogger(AlquilerServiceImpl.class.getName())
+                .log(java.util.logging.Level.INFO,
+                    "Se finalizaron {0} alquiler(es) expirado(s) antes de crear uno nuevo",
+                    alquileresFinalizados);
+        }
+
         Optional<Contenido> contenidoOpt = contenidoRepository.findById(contenidoId);
         if (!contenidoOpt.isPresent() || Boolean.FALSE.equals(contenidoOpt.get().getDisponibleParaAlquiler())) {
             throw new IllegalStateException("Contenido no disponible para alquiler");

@@ -197,6 +197,33 @@ function renderSkeletons(n=8) {
   });
 })();
 
+// Agregar click handler a todas las tarjetas de película para navegar al detalle
+(function setupCardClickHandlers() {
+    const cards = document.querySelectorAll('.movie-card');
+    cards.forEach(card => {
+        // Extraer el ID del contenido desde el atributo data
+        const contenidoId = card.getAttribute('data-contenido') || (card.querySelector('.rent-btn[data-contenido]')?.getAttribute('data-contenido'));
+
+        if (contenidoId) {
+            // Hacer que la tarjeta sea clickeable con cursor pointer
+            card.style.cursor = 'pointer';
+
+            // Agregar evento de clic a toda la tarjeta
+            card.addEventListener('click', function(e) {
+                // Verificar que no se hizo clic en un botón o elemento interactivo
+                const target = e.target;
+                const isButton = target.tagName === 'BUTTON' || target.closest('button');
+                const isLink = target.tagName === 'A' || target.closest('a');
+
+                if (!isButton && !isLink) {
+                    // Navegar a la página de detalles
+                    window.location.href = endpoint('/contenido/' + contenidoId);
+                }
+            });
+        }
+    });
+})();
+
 function clearFilters(){
   const base = (window.APP_CTX||'') + '/catalogo';
   window.location.href = base;

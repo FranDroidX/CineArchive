@@ -30,4 +30,7 @@ public interface ResenaService {
     boolean existePorUsuarioYContenido(Long usuarioId, Long contenidoId);
 
     List<Resena> buscarPorUsuarioYContenido(Long usuarioId, Long contenidoId);
+
+    // Nuevo: contar reseñas por contenido
+    long contarPorContenido(Long contenidoId);
 }

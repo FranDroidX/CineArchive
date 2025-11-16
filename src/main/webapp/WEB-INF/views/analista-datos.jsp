@@ -63,57 +63,7 @@
                 </div>
             </div>
 
-            <!-- Generador de Reportes -->
-            <section class="admin-section">
-                <div class="section-header">
-                    <h2>📄 Generador de Reportes</h2>
-                </div>
-
-                <div class="report-generator">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="tipo-reporte">Tipo de Reporte:</label>
-                            <select id="tipo-reporte">
-                                <option value="">Seleccionar tipo...</option>
-                                <option value="mas-alquilados">Contenido Más Alquilado</option>
-                                <option value="rendimiento-generos">Rendimiento por Género</option>
-                                <option value="comportamiento-usuarios">Comportamiento de Usuarios</option>
-                                <option value="tendencias">Tendencias Temporales</option>
-                                <option value="demografico">Análisis Demográfico</option>
-                                <option value="ingresos">Análisis de Ingresos</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="periodo-reporte">Período:</label>
-                            <select id="periodo-reporte">
-                                <option value="ultima-semana">Última Semana</option>
-                                <option value="ultimo-mes" selected>Último Mes</option>
-                                <option value="ultimo-trimestre">Último Trimestre</option>
-                                <option value="ultimo-año">Último Año</option>
-                                <option value="personalizado">Personalizado</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="fecha-inicio">Fecha Inicio:</label>
-                            <input type="date" id="fecha-inicio">
-                        </div>
-                        <div class="form-group">
-                            <label for="fecha-fin">Fecha Fin:</label>
-                            <input type="date" id="fecha-fin">
-                        </div>
-                        <div class="form-group">
-                            <label for="formato-reporte">Formato:</label>
-                            <select id="formato-reporte">
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel</option>
-                                <option value="csv">CSV</option>
-                                <option value="html">HTML</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="generarReporte()">📊 Generar Reporte</button>
-                </div>
-            </section>
+            <!-- Sección Generador de Reportes ELIMINADA -->
 
             <!-- Top 10 Más Alquilados -->
             <section class="admin-section">
@@ -204,19 +154,6 @@
     <%@ include file="fragments/footer.jsp" %>
 
     <script src="${pageContext.request.contextPath}/js/script.js"></script>
-    <script>
-        function generarReporte() {
-            const tipo = document.getElementById('tipo-reporte').value;
-            const formato = document.getElementById('formato-reporte').value;
-
-            if (!tipo) {
-                alert('Por favor selecciona un tipo de reporte');
-                return;
-            }
-
-            alert('Generando reporte de tipo: ' + tipo + ' en formato ' + formato);
-        }
-    </script>
 </body>
 </html>
 

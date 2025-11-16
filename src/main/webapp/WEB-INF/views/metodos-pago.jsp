@@ -148,6 +148,8 @@
 </div>
 
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp" />
+
+<script src="${pageContext.request.contextPath}/js/script.js"></script>
 </body>
 </html>
 

@@ -540,6 +540,78 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('shadow-lg');
         });
     });
+
+    // ============================================
+    // MÉTODOS DE PAGO - FORMULARIO
+    // ============================================
+
+    // Función para actualizar campos condicionales según el tipo de método de pago
+    function updateConditionalFields() {
+        const tipo = document.getElementById('tipo');
+        const tarjetaFields = document.getElementById('tarjetaFields');
+        const plataformaFields = document.getElementById('plataformaFields');
+
+        // Verificar que los elementos existan antes de manipularlos
+        if (!tipo || !tarjetaFields || !plataformaFields) return;
+
+        // Ocultar todos
+        tarjetaFields.classList.remove('active');
+        plataformaFields.classList.remove('active');
+
+        const tipoValue = tipo.value;
+
+        // Mostrar según tipo
+        if (tipoValue === 'TARJETA_CREDITO' || tipoValue === 'TARJETA_DEBITO') {
+            tarjetaFields.classList.add('active');
+            // Hacer campos requeridos
+            const titular = document.getElementById('titular');
+            const numeroTarjeta = document.getElementById('numeroTarjeta');
+            if (titular) titular.required = true;
+            if (numeroTarjeta) numeroTarjeta.required = true;
+        } else if (tipoValue === 'MERCADOPAGO' || tipoValue === 'PAYPAL') {
+            plataformaFields.classList.add('active');
+            // Quitar requeridos de tarjeta
+            const titular = document.getElementById('titular');
+            const numeroTarjeta = document.getElementById('numeroTarjeta');
+            if (titular) titular.required = false;
+            if (numeroTarjeta) numeroTarjeta.required = false;
+        } else {
+            // Quitar requeridos
+            const titular = document.getElementById('titular');
+            const numeroTarjeta = document.getElementById('numeroTarjeta');
+            if (titular) titular.required = false;
+            if (numeroTarjeta) numeroTarjeta.required = false;
+        }
+    }
+
+    // Llamar updateConditionalFields al cargar la página si estamos en el formulario de métodos de pago
+    const tipoSelect = document.getElementById('tipo');
+    if (tipoSelect) {
+        updateConditionalFields();
+
+        // Agregar listener para cambios
+        tipoSelect.addEventListener('change', updateConditionalFields);
+    }
+
+    // Formatear fecha de vencimiento automáticamente
+    const fechaVencimientoInput = document.getElementById('fechaVencimiento');
+    if (fechaVencimientoInput) {
+        fechaVencimientoInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 6);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Validar solo números en últimos 4 dígitos de tarjeta
+    const numeroTarjetaInput = document.getElementById('numeroTarjeta');
+    if (numeroTarjetaInput) {
+        numeroTarjetaInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        });
+    }
 });
 
 console.log('🎬 CineArchive - Sistema cargado correctamente');

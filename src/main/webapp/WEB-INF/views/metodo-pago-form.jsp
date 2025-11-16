@@ -125,53 +125,7 @@
 
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp" />
 
-<script>
-function updateConditionalFields() {
-    const tipo = document.getElementById('tipo').value;
-    const tarjetaFields = document.getElementById('tarjetaFields');
-    const plataformaFields = document.getElementById('plataformaFields');
-
-    // Ocultar todos
-    tarjetaFields.classList.remove('active');
-    plataformaFields.classList.remove('active');
-
-    // Mostrar según tipo
-    if (tipo === 'TARJETA_CREDITO' || tipo === 'TARJETA_DEBITO') {
-        tarjetaFields.classList.add('active');
-        // Hacer campos requeridos
-        document.getElementById('titular').required = true;
-        document.getElementById('numeroTarjeta').required = true;
-    } else if (tipo === 'MERCADOPAGO' || tipo === 'PAYPAL') {
-        plataformaFields.classList.add('active');
-        // Quitar requeridos de tarjeta
-        document.getElementById('titular').required = false;
-        document.getElementById('numeroTarjeta').required = false;
-    } else {
-        // Quitar requeridos
-        document.getElementById('titular').required = false;
-        document.getElementById('numeroTarjeta').required = false;
-    }
-}
-
-// Llamar al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    updateConditionalFields();
-});
-
-// Formatear fecha de vencimiento automáticamente
-document.getElementById('fechaVencimiento').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-        value = value.substring(0, 2) + '/' + value.substring(2, 6);
-    }
-    e.target.value = value;
-});
-
-// Validar solo números en últimos 4 dígitos
-document.getElementById('numeroTarjeta').addEventListener('input', function(e) {
-    e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
-});
-</script>
+<script src="${pageContext.request.contextPath}/js/script.js"></script>
 </body>
 </html>
 

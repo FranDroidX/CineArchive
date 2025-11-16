@@ -2,6 +2,7 @@ package edu.utn.inspt.cinearchive.frontend.controlador;
 
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario;
 import edu.utn.inspt.cinearchive.backend.servicio.AlquilerService;
+import edu.utn.inspt.cinearchive.backend.servicio.MetodoPagoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,10 +26,12 @@ public class AlquilerController {
     private static final Logger logger = Logger.getLogger(AlquilerController.class.getName());
 
     private final AlquilerService alquilerService;
+    private final MetodoPagoService metodoPagoService;
 
     @Autowired
-    public AlquilerController(AlquilerService alquilerService) {
+    public AlquilerController(AlquilerService alquilerService, MetodoPagoService metodoPagoService) {
         this.alquilerService = alquilerService;
+        this.metodoPagoService = metodoPagoService;
     }
 
     @GetMapping("/mis-alquileres")
@@ -71,6 +74,17 @@ public class AlquilerController {
             return "redirect:/login";
         }
         Long usuarioId = usuarioLogueado.getId();
+
+        // VALIDACIÓN: Verificar que el usuario tenga al menos un método de pago activo
+        java.util.List<edu.utn.inspt.cinearchive.backend.modelo.MetodoPago> metodosActivos =
+            metodoPagoService.obtenerActivosPorUsuario(usuarioId);
+
+        if (metodosActivos == null || metodosActivos.isEmpty()) {
+            ra.addFlashAttribute("error", "Debes agregar al menos un método de pago activo para poder alquilar contenido");
+            ra.addFlashAttribute("requiresPaymentMethod", true);
+            return "redirect:/contenido/" + contenidoId;
+        }
+
         try {
             // Si se proporciona metodoPagoId, obtener el tipo del método de pago guardado
             String metodoPagoFinal = metodoPago;

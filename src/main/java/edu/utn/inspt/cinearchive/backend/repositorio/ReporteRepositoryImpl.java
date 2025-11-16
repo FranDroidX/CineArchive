@@ -166,15 +166,16 @@ public class ReporteRepositoryImpl implements ReporteRepository {
 
     /**
      * Obtiene los contenidos más alquilados en un período
+     * CORREGIDO: Filtro de fecha en el JOIN para contar solo alquileres del período
      */
     public List<Map<String, Object>> obtenerContenidosMasAlquilados(LocalDate fechaInicio, LocalDate fechaFin, int limite) {
         return jdbcTemplate.queryForList(
                 "SELECT c.id, c.titulo, c.tipo, c.genero, COUNT(a.id) as total_alquileres, " +
                 "AVG(r.calificacion) as calificacion_promedio " +
                 "FROM contenido c " +
-                "LEFT JOIN alquiler a ON c.id = a.contenido_id " +
+                "LEFT JOIN alquiler a ON c.id = a.contenido_id AND a.fecha_inicio BETWEEN ? AND ? " +
                 "LEFT JOIN resena r ON c.id = r.contenido_id " +
-                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
+                "WHERE a.id IS NOT NULL " +
                 "GROUP BY c.id, c.titulo, c.tipo, c.genero " +
                 "ORDER BY total_alquileres DESC " +
                 "LIMIT ?",

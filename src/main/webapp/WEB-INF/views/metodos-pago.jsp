@@ -23,6 +23,10 @@
             margin-bottom: 30px;
         }
 
+        .page-header h1 {
+            color: #ffffff;
+        }
+
         .payment-methods-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -31,8 +35,8 @@
         }
 
         .payment-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: #1f1f1f;
+            border: 1px solid #333;
             border-radius: 12px;
             padding: 20px;
             position: relative;
@@ -41,12 +45,13 @@
 
         .payment-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 16px rgba(229, 9, 20, 0.3);
+            border-color: #e50914;
         }
 
         .payment-card.inactive {
             opacity: 0.6;
-            background: var(--secondary-bg);
+            background: #2d2d2d;
         }
 
         .payment-card-header {
@@ -64,17 +69,17 @@
         .payment-alias {
             font-size: 18px;
             font-weight: bold;
-            color: var(--text-color);
+            color: #ffffff;
             margin-bottom: 5px;
         }
 
         .payment-type {
             font-size: 13px;
-            color: var(--muted-text);
+            color: #b3b3b3;
         }
 
         .preferred-badge {
-            background: var(--primary-color);
+            background: #e50914;
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
@@ -93,8 +98,8 @@
         .payment-details {
             margin: 15px 0;
             padding: 15px 0;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
         }
 
         .payment-detail-row {
@@ -105,11 +110,11 @@
         }
 
         .payment-detail-label {
-            color: var(--muted-text);
+            color: #b3b3b3;
         }
 
         .payment-detail-value {
-            color: var(--text-color);
+            color: #ffffff;
             font-weight: 500;
         }
 
@@ -127,24 +132,27 @@
             font-size: 13px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .btn-primary-action {
-            background: var(--primary-color);
+            background: #e50914;
             color: white;
         }
 
         .btn-primary-action:hover {
-            background: var(--primary-hover);
+            background: #b8070e;
         }
 
         .btn-secondary-action {
-            background: var(--secondary-bg);
-            color: var(--text-color);
+            background: #2d2d2d;
+            color: #ffffff;
+            border: 1px solid #444;
         }
 
         .btn-secondary-action:hover {
             background: #444;
+            border-color: #666;
         }
 
         .btn-danger-action {
@@ -157,7 +165,7 @@
         }
 
         .btn-add-payment {
-            background: var(--primary-color);
+            background: #e50914;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -168,39 +176,46 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-weight: 600;
         }
 
         .btn-add-payment:hover {
-            background: var(--primary-hover);
+            background: #b8070e;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: var(--muted-text);
+            color: #b3b3b3;
+        }
+
+        .empty-state h2 {
+            color: #ffffff;
         }
 
         .empty-state-icon {
             font-size: 64px;
             margin-bottom: 20px;
+            opacity: 0.5;
         }
 
         .alert {
             padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
+            font-weight: 500;
         }
 
         .alert-success {
-            background: rgba(40, 167, 69, 0.2);
+            background: rgba(40, 167, 69, 0.15);
             border: 1px solid #28a745;
-            color: #28a745;
+            color: #5ad879;
         }
 
         .alert-error {
-            background: rgba(220, 53, 69, 0.2);
+            background: rgba(220, 53, 69, 0.15);
             border: 1px solid #dc3545;
-            color: #dc3545;
+            color: #ff6b7a;
         }
     </style>
 </head>

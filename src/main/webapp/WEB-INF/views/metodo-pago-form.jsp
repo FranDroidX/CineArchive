@@ -13,9 +13,10 @@
             max-width: 700px;
             margin: 40px auto;
             padding: 30px;
-            background: var(--card-bg);
+            background: #1f1f1f;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .form-header {
@@ -25,6 +26,11 @@
         .form-header h1 {
             font-size: 28px;
             margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .form-header p {
+            color: #b3b3b3;
         }
 
         .form-group {
@@ -34,7 +40,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--text-color);
+            color: #ffffff;
             font-weight: 500;
         }
 
@@ -42,23 +48,35 @@
         .form-group select {
             width: 100%;
             padding: 12px;
-            background: var(--secondary-bg);
-            border: 1px solid var(--border-color);
+            background: #2d2d2d;
+            border: 1px solid #444;
             border-radius: 8px;
-            color: var(--text-color);
+            color: #ffffff;
             font-size: 15px;
+            transition: all 0.3s ease;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: #e50914;
+            background: #333;
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #666;
+        }
+
+        .form-group select option {
+            background: #2d2d2d;
+            color: #ffffff;
         }
 
         .form-group small {
             display: block;
             margin-top: 5px;
-            color: var(--muted-text);
+            color: #b3b3b3;
             font-size: 13px;
         }
 
@@ -72,12 +90,17 @@
             display: none;
             margin-top: 15px;
             padding: 20px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.3);
             border-radius: 8px;
+            border: 1px solid #333;
         }
 
         .conditional-fields.active {
             display: block;
+        }
+
+        .conditional-fields h3 {
+            color: #ffffff;
         }
 
         .checkbox-group {
@@ -87,8 +110,14 @@
         }
 
         .checkbox-group input[type="checkbox"] {
-            width: auto;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
+            accent-color: #e50914;
+        }
+
+        .checkbox-group label {
+            color: #ffffff !important;
         }
 
         .form-actions {
@@ -103,6 +132,7 @@
             border: none;
             border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: flex;
@@ -112,25 +142,29 @@
         }
 
         .btn-primary {
-            background: var(--primary-color);
+            background: #e50914;
             color: white;
         }
 
         .btn-primary:hover {
-            background: var(--primary-hover);
+            background: #b8070e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
         }
 
         .btn-secondary {
-            background: var(--secondary-bg);
-            color: var(--text-color);
+            background: #2d2d2d;
+            color: #ffffff;
+            border: 1px solid #444;
         }
 
         .btn-secondary:hover {
             background: #444;
+            border-color: #666;
         }
 
         .required {
-            color: #dc3545;
+            color: #ff4444;
         }
     </style>
 </head>

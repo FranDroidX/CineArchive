@@ -17,7 +17,7 @@
 <body class="detail-page">
 <jsp:include page="/WEB-INF/views/fragments/header.jsp" />
 <div class="container">
-    <div class="detail-container">
+    <div class="detail-container" data-contenido-id="${contenido.id}" data-usuario-id="${usuarioLogueado != null ? usuarioLogueado.id : ''}">
         <div class="detail-hero">
             <c:choose>
                 <c:when test="${empty contenido.imagenUrl}">
@@ -61,8 +61,8 @@
                                 <input type="hidden" name="contenidoId" value="${contenido.id}" />
                                 <div class="rental-options">
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental3" value="3" checked />
-                                        <label for="rental3">
+                                        <input type="radio" name="periodo" id="rental3ext" value="3" checked />
+                                        <label for="rental3ext">
                                             <span class="rental-duration">3 días</span>
                                             <span class="rental-price-large">
                                                 <c:if test="${not empty contenido.precioAlquiler}">$<fmt:formatNumber value="${contenido.precioAlquiler}" minFractionDigits="2" maxFractionDigits="2"/></c:if>
@@ -70,8 +70,8 @@
                                         </label>
                                     </div>
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental7" value="7" />
-                                        <label for="rental7">
+                                        <input type="radio" name="periodo" id="rental7ext" value="7" />
+                                        <label for="rental7ext">
                                             <span class="rental-duration">7 días</span>
                                             <span class="rental-price-large">
                                                 <c:if test="${not empty contenido.precioAlquiler}">$<fmt:formatNumber value="${contenido.precioAlquiler * 2.33}" minFractionDigits="2" maxFractionDigits="2"/></c:if>
@@ -80,12 +80,25 @@
                                     </div>
                                 </div>
                                 <div class="payment-method">
-                                    <label for="metodoPago">Método de pago</label>
-                                    <select id="metodoPago" name="metodoPago">
-                                        <option value="TARJETA">Tarjeta</option>
-                                        <option value="MERCADOPAGO">MercadoPago</option>
-                                        <option value="EFECTIVO">Efectivo</option>
-                                    </select>
+                                    <label for="metodoPagoExt">Método de pago</label>
+                                    <c:choose>
+                                        <c:when test="${not empty metodosPago}">
+                                            <select id="metodoPagoExt" name="metodoPagoId">
+                                                <c:forEach var="mp" items="${metodosPago}">
+                                                    <option value="${mp.id}" ${mp.preferido ? 'selected' : ''}>
+                                                        ${mp.descripcion}
+                                                    </option>
+                                                </c:forEach>
+                                            </select>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <select id="metodoPagoExt" name="metodoPago">
+                                                <option value="TARJETA">Tarjeta</option>
+                                                <option value="MERCADOPAGO">MercadoPago</option>
+                                                <option value="EFECTIVO">Efectivo</option>
+                                            </select>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <button class="rent-btn-large" type="submit">🔄 Extender Alquiler</button>
                             </form>
@@ -125,11 +138,30 @@
                                 </div>
                                 <div class="payment-method">
                                     <label for="metodoPago">Método de pago</label>
-                                    <select id="metodoPago" name="metodoPago">
-                                        <option value="TARJETA">Tarjeta</option>
-                                        <option value="MERCADOPAGO">MercadoPago</option>
-                                        <option value="EFECTIVO">Efectivo</option>
-                                    </select>
+                                    <c:choose>
+                                        <c:when test="${not empty metodosPago}">
+                                            <select id="metodoPago" name="metodoPagoId">
+                                                <c:forEach var="mp" items="${metodosPago}">
+                                                    <option value="${mp.id}" ${mp.preferido ? 'selected' : ''}>
+                                                        ${mp.descripcion}
+                                                    </option>
+                                                </c:forEach>
+                                            </select>
+                                            <small style="display:block; margin-top:8px; color:#aaa;">
+                                                <a href="${pageContext.request.contextPath}/metodos-pago" style="color:var(--primary-color);">Gestionar métodos de pago</a>
+                                            </small>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <select id="metodoPago" name="metodoPago">
+                                                <option value="TARJETA">Tarjeta</option>
+                                                <option value="MERCADOPAGO">MercadoPago</option>
+                                                <option value="EFECTIVO">Efectivo</option>
+                                            </select>
+                                            <small style="display:block; margin-top:8px; color:#aaa;">
+                                                💡 <a href="${pageContext.request.contextPath}/metodos-pago/nuevo" style="color:var(--primary-color);">Guarda tu método de pago</a> para futuras compras
+                                            </small>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <button class="rent-btn-large" type="submit">🎬 Alquilar ahora</button>
                             </form>
@@ -158,12 +190,30 @@
                 </div>
                 <div class="reviews-section">
                     <h2>✍️ Reseñas de Usuarios</h2>
+                    <div id="reviews-stats" style="margin:8px 0 16px 0; color:#bbb;">
+                        Calificación promedio: <strong><span id="avg-rating">-</span></strong>
+                        (<span id="review-count">0</span> reseñas)
+                    </div>
                     <div class="review-form">
                         <h3>Escribe tu reseña</h3>
-                        <div class="rating-input"><span>Tu calificación: </span><span class="stars-input">☆☆☆☆☆</span></div>
-                        <textarea placeholder="Comparte tu opinión sobre esta película o serie..."></textarea>
-                        <button class="btn-primary" type="button" onclick="showToast('Reseña enviada ✓','success')">Publicar Reseña</button>
+                        <div class="rating-input" style="margin:8px 0; display:flex; gap:10px; align-items:center;">
+                            <label for="review-rating" style="color:#ccc;">Tu calificación:</label>
+                            <select id="review-rating">
+                                <option value="5">5 - Excelente</option>
+                                <option value="4">4 - Muy buena</option>
+                                <option value="3">3 - Buena</option>
+                                <option value="2">2 - Regular</option>
+                                <option value="1" selected>1 - Mala</option>
+                            </select>
+                        </div>
+                        <input type="text" id="review-title" placeholder="Título de tu reseña" maxlength="100" style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #333;background:#111;color:#eee;" />
+                        <textarea id="review-text" placeholder="Comparte tu opinión sobre esta película o serie..." maxlength="2000" style="width:100%;min-height:90px;padding:10px;border-radius:6px;border:1px solid #333;background:#111;color:#eee;"></textarea>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button id="review-submit" class="btn-primary" type="button">Publicar Reseña</button>
+                            <span id="review-msg" style="font-size:12px;color:#aaa;"></span>
+                        </div>
                     </div>
+                    <div id="reviews-list" style="margin-top:20px; display:flex; flex-direction:column; gap:12px;"></div>
                 </div>
                 <div class="detail-cast">
                     <h3>Información Adicional</h3>
@@ -275,6 +325,7 @@
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp" />
 <script src="${pageContext.request.contextPath}/js/alquiler.js"></script>
 <script src="${pageContext.request.contextPath}/js/listas.js"></script>
+<script src="${pageContext.request.contextPath}/js/resenas.js"></script>
 <script>
 (function(){
   function formatearTiempoRestante(segundos) {

@@ -19,26 +19,57 @@
 
   function renderReviewItem(r, usuarioActualId){
     const item = ce('div','review-item');
-    item.style.border = '1px solid #333'; item.style.padding = '10px'; item.style.borderRadius='8px';
-    const head = ce('div'); head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='center';
-    const title = ce('div');
+    item.style.border = '1px solid #333'; item.style.padding = '12px'; item.style.borderRadius='8px'; item.style.background='#0a0a0a';
+
+    // Encabezado con título y estrellas
+    const head = ce('div'); head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='flex-start'; head.style.marginBottom='8px';
+    const titleSection = ce('div'); titleSection.style.flex='1';
     const stars = '★★★★★☆☆☆☆☆'.slice(5 - Math.round(r.calificacion), 10 - Math.round(r.calificacion));
-    title.innerHTML = `<strong>${esc(r.titulo||'')}</strong> <span style="color:#f5c518;">${stars}</span>`;
-    head.appendChild(title);
+    titleSection.innerHTML = `<strong style="font-size:15px;">${esc(r.titulo||'')}</strong> <span style="color:#f5c518;">${stars}</span>`;
+    head.appendChild(titleSection);
+
+    // Botón eliminar si es del usuario actual
     if (r.usuario && r.usuario.id && String(r.usuario.id) === String(usuarioActualId)){
       const actions = ce('div');
-      const del = ce('button','btn-link'); del.textContent = 'Eliminar'; del.style.color='#f55'; del.style.marginLeft='8px';
+      const del = ce('button','btn-link');
+      del.textContent = 'Eliminar';
+      del.style.color='#f55';
+      del.style.padding='4px 10px';
+      del.style.fontSize='12px';
       del.addEventListener('click', async ()=>{
-        try {
-          await fetchJSON(`${ctx}/api/resenas/${r.id}`, { method:'DELETE' });
-          loadReviews();
-        } catch(e){ setMsg('Error al eliminar: '+e.message, true); }
+        if (confirm('¿Eliminar esta reseña?')) {
+          try {
+            await fetchJSON(`${ctx}/api/resenas/${r.id}`, { method:'DELETE' });
+            setMsg('Reseña eliminada ✓');
+            await loadStats();
+            await loadReviews();
+          } catch(e){ setMsg('Error al eliminar: '+e.message, true); }
+        }
       });
       actions.appendChild(del);
       head.appendChild(actions);
     }
-    const body = ce('div'); body.style.marginTop = '6px'; body.innerHTML = `<div style="color:#aaa;font-size:13px;">${esc(r.texto||'')}</div>`;
-    item.appendChild(head); item.appendChild(body);
+    item.appendChild(head);
+
+    // Información del usuario y fecha
+    const meta = ce('div');
+    meta.style.fontSize='12px';
+    meta.style.color='#888';
+    meta.style.marginBottom='8px';
+    const userName = r.usuario && r.usuario.nombre ? esc(r.usuario.nombre) : 'Usuario';
+    const fecha = r.fechaCreacion ? esc(r.fechaCreacion) : '';
+    meta.innerHTML = `<span style="color:#aaa;">Por <strong style="color:#ccc;">${userName}</strong></span>` +
+                     (fecha ? ` <span style="margin-left:8px;">• ${fecha}</span>` : '');
+    item.appendChild(meta);
+
+    // Texto de la reseña
+    const body = ce('div');
+    body.style.color='#bbb';
+    body.style.fontSize='14px';
+    body.style.lineHeight='1.5';
+    body.textContent = r.texto || '';
+    item.appendChild(body);
+
     return item;
   }
 

@@ -34,9 +34,14 @@ public class ResenaRepositoryImpl implements ResenaRepository {
         Resena resena = new Resena();
         resena.setId(rs.getLong("id"));
 
-        // Solo establecer IDs para evitar consultas circulares
+        // Cargar datos del usuario (id y nombre)
         Usuario usuario = new Usuario();
         usuario.setId(rs.getLong("usuario_id"));
+        try {
+            usuario.setNombre(rs.getString("usuario_nombre"));
+        } catch (Exception e) {
+            // Si no existe la columna usuario_nombre, ignorar
+        }
         resena.setUsuario(usuario);
 
         Contenido contenido = new Contenido();
@@ -57,7 +62,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
 
     public List<Resena> findAll() {
         return jdbcTemplate.query(
-                "SELECT * FROM resena ORDER BY fecha_creacion DESC",
+                "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                "ORDER BY r.fecha_creacion DESC",
                 resenaRowMapper
         );
     }
@@ -65,7 +72,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
     public Optional<Resena> findById(Long id) {
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "SELECT * FROM resena WHERE id = ?",
+                    "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                    "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                    "WHERE r.id = ?",
                     resenaRowMapper,
                     id
             ));
@@ -76,7 +85,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
 
     public List<Resena> findByUsuarioId(Long usuarioId) {
         return jdbcTemplate.query(
-                "SELECT * FROM resena WHERE usuario_id = ? ORDER BY fecha_creacion DESC",
+                "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                "WHERE r.usuario_id = ? ORDER BY r.fecha_creacion DESC",
                 resenaRowMapper,
                 usuarioId
         );
@@ -84,7 +95,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
 
     public List<Resena> findByContenidoId(Long contenidoId) {
         return jdbcTemplate.query(
-                "SELECT * FROM resena WHERE contenido_id = ? ORDER BY fecha_creacion DESC",
+                "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                "WHERE r.contenido_id = ? ORDER BY r.fecha_creacion DESC",
                 resenaRowMapper,
                 contenidoId
         );
@@ -92,7 +105,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
 
     public List<Resena> findByCalificacionGreaterThanEqual(Double calificacion) {
         return jdbcTemplate.query(
-                "SELECT * FROM resena WHERE calificacion >= ? ORDER BY calificacion DESC",
+                "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                "WHERE r.calificacion >= ? ORDER BY r.calificacion DESC",
                 resenaRowMapper,
                 calificacion
         );
@@ -108,7 +123,9 @@ public class ResenaRepositoryImpl implements ResenaRepository {
 
     public List<Resena> findByUsuarioIdAndContenidoId(Long usuarioId, Long contenidoId) {
         return jdbcTemplate.query(
-                "SELECT * FROM resena WHERE usuario_id = ? AND contenido_id = ?",
+                "SELECT r.*, u.nombre as usuario_nombre FROM resena r " +
+                "LEFT JOIN usuario u ON r.usuario_id = u.id " +
+                "WHERE r.usuario_id = ? AND r.contenido_id = ?",
                 resenaRowMapper,
                 usuarioId,
                 contenidoId

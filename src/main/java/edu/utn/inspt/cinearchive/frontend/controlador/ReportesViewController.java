@@ -1,5 +1,7 @@
 package edu.utn.inspt.cinearchive.frontend.controlador;
 
+import edu.utn.inspt.cinearchive.backend.servicio.ReporteService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,18 +10,27 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador para las vistas del Analista de Datos
  * Parte del Developer 3 - Manejo de frontend para reportes y analytics
+ * ACTUALIZADO: Ahora carga datos reales desde el servicio
  */
 @Controller
 @RequestMapping("/reportes")
 public class ReportesViewController {
 
+    @Autowired
+    private ReporteService reporteService;
+
     /**
      * Mostrar el panel principal del analista de datos
      * Endpoint principal para el rol ANALISTA_DATOS
+     * ACTUALIZADO: Carga datos reales desde la base de datos
      *
      * @param model el modelo para pasar datos a la vista
      * @return el nombre de la vista JSP
@@ -40,11 +51,36 @@ public class ReportesViewController {
         model.addAttribute("fechaFin", fechaFin.format(formatter));
         model.addAttribute("periodoSeleccionado", 30);
 
-        // KPIs iniciales (serán cargados via JavaScript)
-        model.addAttribute("totalVisualizaciones", 0);
-        model.addAttribute("ingresosTotales", 0.0);
-        model.addAttribute("usuariosActivos", 0);
-        model.addAttribute("calificacionPromedio", 0.0);
+        // CARGAR ESTADÍSTICAS GENERALES
+        try {
+            Map<String, Object> estadisticas = reporteService.obtenerEstadisticasGenerales();
+            model.addAttribute("estadisticas", estadisticas);
+        } catch (Exception e) {
+            System.err.println("Error cargando estadísticas: " + e.getMessage());
+            e.printStackTrace();
+            // Valores por defecto si falla
+            Map<String, Object> estadisticasDefault = new HashMap<>();
+            estadisticasDefault.put("total_alquileres", 0);
+            estadisticasDefault.put("total_usuarios", 0);
+            estadisticasDefault.put("calificacion_promedio_global", 0.0);
+            estadisticasDefault.put("ingresos_totales", 0.0);
+            estadisticasDefault.put("total_contenidos", 0);
+            estadisticasDefault.put("total_resenas", 0);
+            model.addAttribute("estadisticas", estadisticasDefault);
+        }
+
+        // CARGAR TOP 10 CONTENIDOS MÁS ALQUILADOS
+        try {
+            List<Map<String, Object>> topContenidos = reporteService.obtenerTopContenidos(
+                fechaInicio, fechaFin, 10
+            );
+            model.addAttribute("topContenidos", topContenidos);
+        } catch (Exception e) {
+            System.err.println("Error cargando top contenidos: " + e.getMessage());
+            model.addAttribute("topContenidos", Collections.emptyList());
+        }
+
+        // Secciones eliminadas: rendimientoGeneros, demografico, tendencias, categoriasPopulares
 
         return "analista-datos";
     }
@@ -66,6 +102,7 @@ public class ReportesViewController {
 
     /**
      * Mostrar analytics con filtros específicos
+     * ACTUALIZADO: Carga datos filtrados desde la base de datos
      *
      * @param periodo período de análisis en días
      * @param fechaInicio fecha de inicio personalizada
@@ -89,17 +126,31 @@ public class ReportesViewController {
         model.addAttribute("periodoSeleccionado", periodo);
         model.addAttribute("tipoContenidoSeleccionado", tipoContenido != null ? tipoContenido : "");
 
-        // Si no se proporcionan fechas personalizadas, usar el período
-        if (fechaInicio == null || fechaFin == null) {
-            LocalDate fin = LocalDate.now();
-            LocalDate inicio = fin.minusDays(periodo);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // Calcular fechas
+        LocalDate fin;
+        LocalDate inicio;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            model.addAttribute("fechaInicio", inicio.format(formatter));
-            model.addAttribute("fechaFin", fin.format(formatter));
+        if (fechaInicio == null || fechaFin == null) {
+            fin = LocalDate.now();
+            inicio = fin.minusDays(periodo);
         } else {
-            model.addAttribute("fechaInicio", fechaInicio);
-            model.addAttribute("fechaFin", fechaFin);
+            inicio = LocalDate.parse(fechaInicio);
+            fin = LocalDate.parse(fechaFin);
+        }
+
+        model.addAttribute("fechaInicio", inicio.format(formatter));
+        model.addAttribute("fechaFin", fin.format(formatter));
+
+        // CARGAR DATOS CON FILTROS (solo estadísticas y top contenidos)
+        try {
+            Map<String, Object> estadisticas = reporteService.obtenerEstadisticasGenerales();
+            model.addAttribute("estadisticas", estadisticas);
+
+            List<Map<String, Object>> topContenidos = reporteService.obtenerTopContenidos(inicio, fin, 10);
+            model.addAttribute("topContenidos", topContenidos);
+        } catch (Exception e) {
+            System.err.println("Error cargando analytics con filtros: " + e.getMessage());
         }
 
         return "analista-datos";

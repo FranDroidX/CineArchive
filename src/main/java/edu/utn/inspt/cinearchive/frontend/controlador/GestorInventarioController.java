@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -381,34 +382,133 @@ public class GestorInventarioController {
     // ==================== VISTAS JSP ====================
 
     /**
-     * Vista principal del gestor de inventario
+     * Vista principal del gestor de inventario con filtrado
      */
     @GetMapping
-    public String mostrarGestorInventario(Model model) {
+    public String mostrarGestorInventario(
+            @RequestParam(defaultValue = "1") int pagina,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String genero,
+            @RequestParam(required = false) String estado,
+            Model model) {
         try {
-            // Cargar datos para la vista principal
-            List<Contenido> contenidosRecientes = contenidoService.obtenerTodos();
-            List<Categoria> categorias = categoriaService.obtenerTodas();
+            // Cargar todos los contenidos
+            List<Contenido> todosLosContenidos = contenidoService.obtenerTodos();
 
-            // Limitar a los primeros 10 para la vista principal
-            if (contenidosRecientes.size() > 10) {
-                contenidosRecientes = contenidosRecientes.subList(0, 10);
-            }
+            // Aplicar filtros si existen
+            List<Contenido> contenidosFiltrados = todosLosContenidos.stream()
+                .filter(c -> {
+                    // Filtro por búsqueda (título)
+                    if (busqueda != null && !busqueda.trim().isEmpty()) {
+                        if (!c.getTitulo().toLowerCase().contains(busqueda.toLowerCase().trim())) {
+                            return false;
+                        }
+                    }
 
-            model.addAttribute("contenidos", contenidosRecientes);
-            model.addAttribute("categorias", categorias);
+                    // Filtro por tipo
+                    if (tipo != null && !tipo.isEmpty()) {
+                        if (!c.getTipo().toString().equals(tipo)) {
+                            return false;
+                        }
+                    }
 
-            // Estadísticas básicas
+                    // Filtro por género
+                    if (genero != null && !genero.isEmpty()) {
+                        if (c.getGenero() == null || !c.getGenero().equals(genero)) {
+                            return false;
+                        }
+                    }
+
+                    // Filtro por estado
+                    if (estado != null && !estado.isEmpty()) {
+                        Integer copiasDisp = c.getCopiasDisponibles();
+                        Integer copiasTot = c.getCopiasTotales();
+
+                        if ("disponible".equals(estado)) {
+                            if (copiasDisp == null || copiasDisp <= 0) {
+                                return false;
+                            }
+                        } else if ("no-disponible".equals(estado)) {
+                            if (copiasDisp == null || copiasDisp > 0) {
+                                return false;
+                            }
+                        } else if ("stock-bajo".equals(estado)) {
+                            if (copiasDisp == null || copiasTot == null || copiasTot == 0) {
+                                return false;
+                            }
+                            double porcentaje = (double) copiasDisp / copiasTot;
+                            if (porcentaje > 0.2) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+            // Paginación sobre los contenidos filtrados
+            int elementosPorPagina = 20;
+            int totalElementos = contenidosFiltrados.size();
+            int totalPaginas = (int) Math.ceil((double) totalElementos / elementosPorPagina);
+
+            int inicio = (pagina - 1) * elementosPorPagina;
+            int fin = Math.min(inicio + elementosPorPagina, totalElementos);
+
+            List<Contenido> contenidosPaginados = totalElementos > 0
+                ? contenidosFiltrados.subList(inicio, fin)
+                : new ArrayList<>();
+
+            // Cargar categorías y géneros
+            List<Categoria> todasCategorias = categoriaService.obtenerTodas();
+            List<Categoria> generos = categoriaService.obtenerGeneros();
+
+            // Identificar contenidos con stock bajo (menos del 20% disponible)
+            List<Contenido> contenidosStockBajo = todosLosContenidos.stream()
+                .filter(c -> {
+                    Integer copiasTotales = c.getCopiasTotales();
+                    Integer copiasDisponibles = c.getCopiasDisponibles();
+                    if (copiasTotales != null && copiasTotales > 0 && copiasDisponibles != null) {
+                        double porcentaje = (double) copiasDisponibles / copiasTotales;
+                        return porcentaje <= 0.2; // 20% o menos
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+
+            model.addAttribute("contenidos", contenidosPaginados);
+            model.addAttribute("categorias", todasCategorias);
+            model.addAttribute("generos", generos);
+            model.addAttribute("contenidosStockBajo", contenidosStockBajo);
+            model.addAttribute("paginaActual", pagina);
+            model.addAttribute("totalPaginas", totalPaginas);
+            model.addAttribute("totalResultados", totalElementos);
+
+            // Mantener valores de filtros en el formulario
+            model.addAttribute("filtroBusqueda", busqueda != null ? busqueda : "");
+            model.addAttribute("filtroTipo", tipo != null ? tipo : "");
+            model.addAttribute("filtroGenero", genero != null ? genero : "");
+            model.addAttribute("filtroEstado", estado != null ? estado : "");
+
+            // Estadísticas completas
+            List<Contenido> peliculas = contenidoService.buscarPorTipo(Contenido.Tipo.PELICULA);
+            List<Contenido> series = contenidoService.buscarPorTipo(Contenido.Tipo.SERIE);
+            List<Contenido> disponibles = contenidoService.obtenerDisponiblesParaAlquiler();
+
             Map<String, Object> estadisticas = new HashMap<>();
-            estadisticas.put("total_contenidos", contenidoService.obtenerTodos().size());
-            estadisticas.put("total_categorias", categorias.size());
-            estadisticas.put("disponibles", contenidoService.obtenerDisponiblesParaAlquiler().size());
+            estadisticas.put("totalContenidos", totalElementos);
+            estadisticas.put("totalPeliculas", peliculas.size());
+            estadisticas.put("totalSeries", series.size());
+            estadisticas.put("contenidosDisponibles", disponibles.size());
+            estadisticas.put("totalCategorias", todasCategorias.size());
+            estadisticas.put("totalResenas", resenaService.obtenerTodas().size());
 
             model.addAttribute("estadisticas", estadisticas);
 
             return "gestor-inventario";
         } catch (Exception e) {
-            model.addAttribute("error", "Error al cargar el gestor de inventario");
+            model.addAttribute("error", "Error al cargar el gestor de inventario: " + e.getMessage());
             return "error";
         }
     }

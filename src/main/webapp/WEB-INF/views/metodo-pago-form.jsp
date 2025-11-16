@@ -14,7 +14,7 @@
 
 <div class="form-container">
     <div class="form-header">
-        <h1>${empty metodoPago.id ? '➕ Agregar' : '✏️ Editar'} Método de Pago</h1>
+        <h1>${empty metodoPago.id ? '&#10133; Agregar' : '&#9998; Editar'} Método de Pago</h1>
         <p style="color: var(--muted-text);">Complete los datos de su método de pago</p>
     </div>
 
@@ -114,10 +114,10 @@
 
         <div class="form-actions">
             <a href="${pageContext.request.contextPath}/metodos-pago" class="btn btn-secondary">
-                ✖ Cancelar
+                &#10006; Cancelar
             </a>
             <button type="submit" class="btn btn-primary">
-                ✔ ${empty metodoPago.id ? 'Agregar' : 'Guardar Cambios'}
+                &#10004; ${empty metodoPago.id ? 'Agregar' : 'Guardar Cambios'}
             </button>
         </div>
     </form>

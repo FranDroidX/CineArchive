@@ -12,6 +12,7 @@
         <a href="${pageContext.request.contextPath}/mi-lista">Mi Lista</a>
         <a href="${pageContext.request.contextPath}/para-ver">Para Ver</a>
         <a href="${pageContext.request.contextPath}/mis-alquileres">Alquileres</a>
+        <a href="${pageContext.request.contextPath}/metodos-pago">💳 Métodos de Pago</a>
 
         <%-- Opciones específicas por rol --%>
         <c:if test="${sessionScope.usuarioLogueado.rol == 'ADMINISTRADOR'}">

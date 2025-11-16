@@ -99,6 +99,12 @@ public class ResenaServiceImpl implements ResenaService {
         return resenaRepository.findByUsuarioIdAndContenidoId(usuarioId, contenidoId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long contarPorContenido(Long contenidoId) {
+        return resenaRepository.countByContenidoId(contenidoId.intValue());
+    }
+
     private void validarResena(Resena resena) {
         if (resena == null) {
             throw new IllegalArgumentException("La reseña no puede ser null");
@@ -112,14 +118,21 @@ public class ResenaServiceImpl implements ResenaService {
         if (resena.getCalificacion() == null) {
             throw new IllegalArgumentException("La calificación es obligatoria");
         }
-        if (resena.getCalificacion() < 0 || resena.getCalificacion() > 5) {
-            throw new IllegalArgumentException("La calificación debe estar entre 0 y 5");
+        // Ajuste a 1..5 para coincidir con la restricción de la BD
+        if (resena.getCalificacion() < 1 || resena.getCalificacion() > 5) {
+            throw new IllegalArgumentException("La calificación debe estar entre 1 y 5");
         }
         if (resena.getTitulo() == null || resena.getTitulo().trim().isEmpty()) {
             throw new IllegalArgumentException("El título es obligatorio");
         }
         if (resena.getTexto() == null || resena.getTexto().trim().isEmpty()) {
             throw new IllegalArgumentException("El texto es obligatorio");
+        }
+        if (resena.getTitulo().length() > 100) {
+            throw new IllegalArgumentException("El título no puede exceder 100 caracteres");
+        }
+        if (resena.getTexto().length() > 2000) {
+            throw new IllegalArgumentException("El texto no puede exceder 2000 caracteres");
         }
     }
 }

@@ -52,6 +52,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public Gson gson() {
         return new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .registerTypeAdapter(java.time.LocalDate.class, new com.google.gson.JsonSerializer<java.time.LocalDate>() {
+                    @Override
+                    public com.google.gson.JsonElement serialize(java.time.LocalDate src, java.lang.reflect.Type typeOfSrc, com.google.gson.JsonSerializationContext context) {
+                        return new com.google.gson.JsonPrimitive(src.toString());
+                    }
+                })
+                .registerTypeAdapter(java.time.LocalDate.class, new com.google.gson.JsonDeserializer<java.time.LocalDate>() {
+                    @Override
+                    public java.time.LocalDate deserialize(com.google.gson.JsonElement json, java.lang.reflect.Type typeOfT, com.google.gson.JsonDeserializationContext context) throws com.google.gson.JsonParseException {
+                        return java.time.LocalDate.parse(json.getAsString());
+                    }
+                })
                 .setPrettyPrinting()
                 .create();
     }

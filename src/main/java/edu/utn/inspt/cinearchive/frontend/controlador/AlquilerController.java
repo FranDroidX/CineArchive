@@ -62,6 +62,7 @@ public class AlquilerController {
     public String alquilar(@RequestParam("contenidoId") Long contenidoId,
                            @RequestParam(value = "periodo", required = false, defaultValue = "3") Integer periodo,
                            @RequestParam(value = "metodoPago", required = false) String metodoPago,
+                           @RequestParam(value = "metodoPagoId", required = false) Long metodoPagoId,
                            HttpSession session,
                            RedirectAttributes ra) {
         Usuario usuarioLogueado = obtenerUsuarioSesion(session);
@@ -71,7 +72,16 @@ public class AlquilerController {
         }
         Long usuarioId = usuarioLogueado.getId();
         try {
-            alquilerService.rent(usuarioId, contenidoId, periodo, metodoPago);
+            // Si se proporciona metodoPagoId, obtener el tipo del método de pago guardado
+            String metodoPagoFinal = metodoPago;
+            if (metodoPagoId != null) {
+                // El servicio de alquiler usará el metodoPagoId si está disponible
+                metodoPagoFinal = "METODO_GUARDADO_" + metodoPagoId;
+            } else if (metodoPagoFinal == null) {
+                metodoPagoFinal = "TARJETA"; // valor por defecto
+            }
+
+            alquilerService.rent(usuarioId, contenidoId, periodo, metodoPagoFinal);
             ra.addFlashAttribute("msg", "Alquiler confirmado");
             return "redirect:/mis-alquileres";
         } catch (IllegalArgumentException | IllegalStateException ex) {

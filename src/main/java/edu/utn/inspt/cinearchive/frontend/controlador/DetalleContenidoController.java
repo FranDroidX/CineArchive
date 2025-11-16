@@ -3,6 +3,7 @@ package edu.utn.inspt.cinearchive.frontend.controlador;
 import edu.utn.inspt.cinearchive.backend.modelo.Contenido;
 import edu.utn.inspt.cinearchive.backend.servicio.ContenidoService;
 import edu.utn.inspt.cinearchive.backend.servicio.AlquilerService;
+import edu.utn.inspt.cinearchive.backend.servicio.MetodoPagoService;
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,11 +19,13 @@ public class DetalleContenidoController {
 
     private final ContenidoService contenidoService;
     private final AlquilerService alquilerService;
+    private final MetodoPagoService metodoPagoService;
 
     @Autowired
-    public DetalleContenidoController(ContenidoService contenidoService, AlquilerService alquilerService) {
+    public DetalleContenidoController(ContenidoService contenidoService, AlquilerService alquilerService, MetodoPagoService metodoPagoService) {
         this.contenidoService = contenidoService;
         this.alquilerService = alquilerService;
+        this.metodoPagoService = metodoPagoService;
     }
 
     @GetMapping("/contenido/{id}")
@@ -115,6 +118,20 @@ public class DetalleContenidoController {
         model.addAttribute("selectedSeason", selectedSeason);
         model.addAttribute("seasons", seasons);
         model.addAttribute("seasonActiveMap", seasonActiveMap);
+
+        // Agregar métodos de pago del usuario
+        try {
+            java.util.List<edu.utn.inspt.cinearchive.backend.modelo.MetodoPago> metodosPago =
+                metodoPagoService.obtenerActivosPorUsuario(usuarioId);
+            model.addAttribute("metodosPago", metodosPago);
+
+            // Buscar método preferido
+            java.util.Optional<edu.utn.inspt.cinearchive.backend.modelo.MetodoPago> preferido =
+                metodoPagoService.obtenerPreferido(usuarioId);
+            if (preferido.isPresent()) {
+                model.addAttribute("metodoPagoPreferido", preferido.get());
+            }
+        } catch (Exception ignore) {}
         // Relacionados por género/tipo (excluyendo el actual)
         java.util.List<Contenido> relacionados = new java.util.ArrayList<>();
         try {

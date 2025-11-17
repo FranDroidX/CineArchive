@@ -272,13 +272,6 @@ Disponible en `db/modelo_de_BD_CineArchiveV2.mwb` y replicado en `cineArchiveBD.
 | Manual por actor | ✔ Ver sección 7. |
 | GitHub colaborativo | ✔ Repositorio indicado en portada (actualizar link). |
 
-## 13. Próximos pasos sugeridos
-1. Completar manual ilustrado con capturas de cada vista.  
-2. Agregar diagramas UML (casos de uso, secuencia, ER) en la entrega PDF.  
-3. Incorporar pruebas unitarias/integración extra (Services de contenido, reportes).  
-4. Externalizar credenciales y API keys via variables de entorno.  
-5. Automatizar seeds con perfiles Maven (`db.seed=true`) si se requiere demo rápida.
-
 ---
 **Fin de la Documentación Integral – CineArchive**
 

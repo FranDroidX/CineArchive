@@ -56,12 +56,26 @@
                                     <button class="rent-btn-large" style="flex:1;" onclick="window.location.href='${pageContext.request.contextPath}/mis-alquileres'">Ver mis alquileres</button>
                                 </div>
                             </div>
-                            <h3 style="margin:24px 0 12px 0; color:var(--text-color);">🔄 Extender Alquiler</h3>
+
+                            <!-- Alerta si no hay métodos de pago activos -->
+                            <c:if test="${empty metodosPago}">
+                                <div class="alert alert-danger" style="margin: 20px 0; padding: 15px; background: rgba(220, 53, 69, 0.15); border: 1px solid #dc3545; border-radius: 8px;">
+                                    <strong>&#9888; Método de pago requerido</strong>
+                                    <p style="margin: 8px 0 12px 0;">Debes agregar al menos un método de pago activo para poder extender tu alquiler.</p>
+                                    <a href="${pageContext.request.contextPath}/metodos-pago/nuevo"
+                                       class="btn-primary"
+                                       style="display: inline-block; padding: 10px 20px; background: var(--primary-color); color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                        &#128179; Agregar Método de Pago
+                                    </a>
+                                </div>
+                            </c:if>
+
+                            <h3 style="margin:24px 0 12px 0; color:var(--text-color);">&#128257; Extender Alquiler</h3>
                             <form action="${pageContext.request.contextPath}/alquilar" method="post">
                                 <input type="hidden" name="contenidoId" value="${contenido.id}" />
                                 <div class="rental-options">
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental3ext" value="3" checked />
+                                        <input type="radio" name="periodo" id="rental3ext" value="3" checked ${empty metodosPago ? 'disabled' : ''} />
                                         <label for="rental3ext">
                                             <span class="rental-duration">3 días</span>
                                             <span class="rental-price-large">
@@ -70,7 +84,7 @@
                                         </label>
                                     </div>
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental7ext" value="7" />
+                                        <input type="radio" name="periodo" id="rental7ext" value="7" ${empty metodosPago ? 'disabled' : ''} />
                                         <label for="rental7ext">
                                             <span class="rental-duration">7 días</span>
                                             <span class="rental-price-large">
@@ -83,7 +97,7 @@
                                     <label for="metodoPagoExt">Método de pago</label>
                                     <c:choose>
                                         <c:when test="${not empty metodosPago}">
-                                            <select id="metodoPagoExt" name="metodoPagoId">
+                                            <select id="metodoPagoExt" name="metodoPagoId" required>
                                                 <c:forEach var="mp" items="${metodosPago}">
                                                     <option value="${mp.id}" ${mp.preferido ? 'selected' : ''}>
                                                         ${mp.descripcion}
@@ -92,15 +106,16 @@
                                             </select>
                                         </c:when>
                                         <c:otherwise>
-                                            <select id="metodoPagoExt" name="metodoPago">
-                                                <option value="TARJETA">Tarjeta</option>
-                                                <option value="MERCADOPAGO">MercadoPago</option>
-                                                <option value="EFECTIVO">Efectivo</option>
+                                            <select id="metodoPagoExt" name="metodoPago" disabled>
+                                                <option value="">Seleccione un método de pago</option>
                                             </select>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <button class="rent-btn-large" type="submit">🔄 Extender Alquiler</button>
+                                <button class="rent-btn-large" type="submit" ${empty metodosPago ? 'disabled' : ''}
+                                        style="${empty metodosPago ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                    &#128257; Extender Alquiler
+                                </button>
                             </form>
                         </c:when>
                         <c:when test="${alquilado}">
@@ -114,11 +129,24 @@
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <form action="${pageContext.request.contextPath}/alquilar" method="post">
+                            <!-- Alerta si no hay métodos de pago activos -->
+                            <c:if test="${empty metodosPago}">
+                                <div class="alert alert-danger" style="margin-bottom: 20px; padding: 15px; background: rgba(220, 53, 69, 0.15); border: 1px solid #dc3545; border-radius: 8px;">
+                                    <strong>&#9888; Método de pago requerido</strong>
+                                    <p style="margin: 8px 0 12px 0;">Debes agregar al menos un método de pago activo para poder alquilar contenido.</p>
+                                    <a href="${pageContext.request.contextPath}/metodos-pago/nuevo"
+                                       class="btn-primary"
+                                       style="display: inline-block; padding: 10px 20px; background: var(--primary-color); color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                        &#128179; Agregar Método de Pago
+                                    </a>
+                                </div>
+                            </c:if>
+
+                            <form action="${pageContext.request.contextPath}/alquilar" method="post" id="formAlquilar">
                                 <input type="hidden" name="contenidoId" value="${contenido.id}" />
                                 <div class="rental-options">
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental3" value="3" checked />
+                                        <input type="radio" name="periodo" id="rental3" value="3" checked ${empty metodosPago ? 'disabled' : ''} />
                                         <label for="rental3">
                                             <span class="rental-duration">3 días</span>
                                             <span class="rental-price-large">
@@ -127,7 +155,7 @@
                                         </label>
                                     </div>
                                     <div class="rental-option">
-                                        <input type="radio" name="periodo" id="rental7" value="7" />
+                                        <input type="radio" name="periodo" id="rental7" value="7" ${empty metodosPago ? 'disabled' : ''} />
                                         <label for="rental7">
                                             <span class="rental-duration">7 días</span>
                                             <span class="rental-price-large">
@@ -140,7 +168,7 @@
                                     <label for="metodoPago">Método de pago</label>
                                     <c:choose>
                                         <c:when test="${not empty metodosPago}">
-                                            <select id="metodoPago" name="metodoPagoId">
+                                            <select id="metodoPago" name="metodoPagoId" required>
                                                 <c:forEach var="mp" items="${metodosPago}">
                                                     <option value="${mp.id}" ${mp.preferido ? 'selected' : ''}>
                                                         ${mp.descripcion}
@@ -152,18 +180,19 @@
                                             </small>
                                         </c:when>
                                         <c:otherwise>
-                                            <select id="metodoPago" name="metodoPago">
-                                                <option value="TARJETA">Tarjeta</option>
-                                                <option value="MERCADOPAGO">MercadoPago</option>
-                                                <option value="EFECTIVO">Efectivo</option>
+                                            <select id="metodoPago" name="metodoPago" disabled>
+                                                <option value="">Seleccione un método de pago</option>
                                             </select>
-                                            <small style="display:block; margin-top:8px; color:#aaa;">
-                                                💡 <a href="${pageContext.request.contextPath}/metodos-pago/nuevo" style="color:var(--primary-color);">Guarda tu método de pago</a> para futuras compras
+                                            <small style="display:block; margin-top:8px; color:#ff6b7a;">
+                                                &#128179; <a href="${pageContext.request.contextPath}/metodos-pago/nuevo" style="color:var(--primary-color);">Agrega tu método de pago</a> para continuar
                                             </small>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <button class="rent-btn-large" type="submit">🎬 Alquilar ahora</button>
+                                <button class="rent-btn-large" type="submit" ${empty metodosPago ? 'disabled' : ''}
+                                        style="${empty metodosPago ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                    &#127916; Alquilar ahora
+                                </button>
                             </form>
                             <div class="action-buttons">
                                 <div class="list-actions" style="width:100%; display:flex; gap:8px;">

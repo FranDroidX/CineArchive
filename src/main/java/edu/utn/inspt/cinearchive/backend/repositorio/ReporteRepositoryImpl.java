@@ -166,16 +166,17 @@ public class ReporteRepositoryImpl implements ReporteRepository {
 
     /**
      * Obtiene los contenidos más alquilados en un período
+     * CORREGIDO: Filtro de fecha en el JOIN para contar solo alquileres del período
      */
     public List<Map<String, Object>> obtenerContenidosMasAlquilados(LocalDate fechaInicio, LocalDate fechaFin, int limite) {
         return jdbcTemplate.queryForList(
-                "SELECT c.id, c.titulo, c.tipo, COUNT(a.id) as total_alquileres, " +
+                "SELECT c.id, c.titulo, c.tipo, c.genero, COUNT(a.id) as total_alquileres, " +
                 "AVG(r.calificacion) as calificacion_promedio " +
                 "FROM contenido c " +
-                "LEFT JOIN alquiler a ON c.id = a.contenido_id " +
+                "LEFT JOIN alquiler a ON c.id = a.contenido_id AND a.fecha_inicio BETWEEN ? AND ? " +
                 "LEFT JOIN resena r ON c.id = r.contenido_id " +
-                "WHERE a.fecha_alquiler BETWEEN ? AND ? " +
-                "GROUP BY c.id, c.titulo, c.tipo " +
+                "WHERE a.id IS NOT NULL " +
+                "GROUP BY c.id, c.titulo, c.tipo, c.genero " +
                 "ORDER BY total_alquileres DESC " +
                 "LIMIT ?",
                 fechaInicio, fechaFin, limite
@@ -183,18 +184,17 @@ public class ReporteRepositoryImpl implements ReporteRepository {
     }
 
     /**
-     * Análisis demográfico de usuarios por género y edad
+     * Análisis demográfico de usuarios por edad
      */
     public List<Map<String, Object>> obtenerAnalisisDemografico(LocalDate fechaInicio, LocalDate fechaFin) {
         return jdbcTemplate.queryForList(
-                "SELECT u.genero, " +
-                "FLOOR(DATEDIFF(CURDATE(), u.fecha_nacimiento) / 365.25) as rango_edad, " +
+                "SELECT FLOOR(DATEDIFF(CURDATE(), u.fecha_nacimiento) / 365.25) as rango_edad, " +
                 "COUNT(DISTINCT a.id) as total_alquileres, " +
                 "COUNT(DISTINCT u.id) as total_usuarios " +
                 "FROM usuario u " +
                 "INNER JOIN alquiler a ON u.id = a.usuario_id " +
-                "WHERE a.fecha_alquiler BETWEEN ? AND ? " +
-                "GROUP BY u.genero, rango_edad " +
+                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
+                "GROUP BY rango_edad " +
                 "ORDER BY total_alquileres DESC",
                 fechaInicio, fechaFin
         );
@@ -213,7 +213,7 @@ public class ReporteRepositoryImpl implements ReporteRepository {
                 "FROM contenido c " +
                 "INNER JOIN alquiler a ON c.id = a.contenido_id " +
                 "LEFT JOIN resena r ON c.id = r.contenido_id " +
-                "WHERE a.fecha_alquiler BETWEEN ? AND ? " +
+                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
                 "GROUP BY c.genero " +
                 "ORDER BY ingresos_totales DESC",
                 fechaInicio, fechaFin
@@ -225,12 +225,12 @@ public class ReporteRepositoryImpl implements ReporteRepository {
      */
     public List<Map<String, Object>> obtenerTendenciasTemporales(LocalDate fechaInicio, LocalDate fechaFin) {
         return jdbcTemplate.queryForList(
-                "SELECT DATE_FORMAT(a.fecha_alquiler, '%Y-%m') as periodo, " +
+                "SELECT DATE_FORMAT(a.fecha_inicio, '%Y-%m') as periodo, " +
                 "COUNT(a.id) as total_alquileres, " +
                 "SUM(a.precio) as ingresos, " +
                 "COUNT(DISTINCT a.usuario_id) as usuarios_activos " +
                 "FROM alquiler a " +
-                "WHERE a.fecha_alquiler BETWEEN ? AND ? " +
+                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
                 "GROUP BY periodo " +
                 "ORDER BY periodo ASC",
                 fechaInicio, fechaFin
@@ -246,10 +246,10 @@ public class ReporteRepositoryImpl implements ReporteRepository {
                 "COUNT(a.id) as total_alquileres, " +
                 "SUM(a.precio) as gasto_total, " +
                 "AVG(a.precio) as gasto_promedio, " +
-                "MAX(a.fecha_alquiler) as ultimo_alquiler " +
+                "MAX(a.fecha_inicio) as ultimo_alquiler " +
                 "FROM usuario u " +
                 "INNER JOIN alquiler a ON u.id = a.usuario_id " +
-                "WHERE a.fecha_alquiler BETWEEN ? AND ? " +
+                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
                 "GROUP BY u.id, u.nombre, u.email " +
                 "ORDER BY total_alquileres DESC",
                 fechaInicio, fechaFin

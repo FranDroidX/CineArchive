@@ -16,36 +16,27 @@ public class InventarioViewController {
     /**
      * Mostrar el panel principal del gestor de inventario
      * Endpoint principal para el rol GESTOR_INVENTARIO
+     * REDIRIGE a /inventario (GestorInventarioController) que carga datos reales
      *
      * @param model el modelo para pasar datos a la vista
-     * @return el nombre de la vista JSP
+     * @return redirección al controlador principal
      */
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
-        // Agregar metadatos para la vista
-        model.addAttribute("pageTitle", "Gestor de Inventario - CineArchive");
-        model.addAttribute("pageDescription", "Panel de control completo para la gestión de contenidos, categorías y reseñas");
-        model.addAttribute("currentSection", "inventario");
-
-        // Datos iniciales para la vista (pueden ser cargados desde servicios)
-        model.addAttribute("totalContenidos", 0);
-        model.addAttribute("contenidosDisponibles", 0);
-        model.addAttribute("totalCategorias", 0);
-        model.addAttribute("totalResenas", 0);
-
-        return "gestor-inventario";
+        // Redirigir al controlador que carga datos reales de la BD
+        return "redirect:/inventario";
     }
 
     /**
      * Mostrar la página principal del gestor de inventario (alias de /panel)
      *
      * @param model el modelo para pasar datos a la vista
-     * @return el nombre de la vista JSP
+     * @return redirección al controlador principal
      */
     @GetMapping("/dashboard")
     public String mostrarDashboardInventario(Model model) {
-        // Redirigir al endpoint principal /panel
-        return mostrarPanelInventario(model);
+        // Redirigir al controlador que carga datos reales de la BD
+        return "redirect:/inventario";
     }
 
     /**

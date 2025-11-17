@@ -1,4 +1,3 @@
-
 /**
  * Cargar géneros en filtro
  */
@@ -415,12 +414,14 @@ function showTab(tabName) {
 
 /**
  * Filtrar contenidos basado en criterios de búsqueda
+ * NOTA: Esta función está duplicada más abajo con los IDs correctos del nuevo JSP
+ * Esta versión se mantiene por compatibilidad con otras vistas
  */
-function filtrarContenidos() {
-    const searchTerm = document.getElementById('search-contenidos').value.toLowerCase();
-    const tipoFilter = document.getElementById('filter-tipo').value;
-    const generoFilter = document.getElementById('filter-genero').value;
-    const disponibilidadFilter = document.getElementById('filter-disponibilidad').value;
+function filtrarContenidosOLD() {
+    const searchTerm = document.getElementById('search-contenidos')?.value.toLowerCase() || '';
+    const tipoFilter = document.getElementById('filter-tipo')?.value || '';
+    const generoFilter = document.getElementById('filter-genero')?.value || '';
+    const disponibilidadFilter = document.getElementById('filter-disponibilidad')?.value || '';
 
     let contenidosFiltrados = contenidosData.filter(contenido => {
         const matchSearch = contenido.titulo.toLowerCase().includes(searchTerm) ||
@@ -706,5 +707,429 @@ async function sincronizarAPIs() {
     } catch (error) {
         console.error('Error:', error);
         showError('Error de conexión durante la sincronización');
+    }
+}
+
+// =====================================
+// FUNCIONES PARA EL NUEVO JSP GESTOR-INVENTARIO
+// =====================================
+
+/**
+ * Agregar nuevo contenido (formulario manual)
+ */
+async function agregarContenido(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    // Obtener duración en minutos (ahora es un campo numérico)
+    const duracionMinutos = parseInt(formData.get('duracion')) || null;
+
+    const contenido = {
+        titulo: formData.get('titulo'),
+        tipo: formData.get('tipo'),
+        anio: parseInt(formData.get('anio')) || null,
+        duracion: duracionMinutos, // Enviar como Integer (minutos)
+        director: formData.get('director') || null,
+        genero: formData.get('genero') || null,
+        descripcion: formData.get('sinopsis') || null, // Backend usa 'descripcion'
+        imagenUrl: formData.get('imagenUrl') || null,
+        copiasTotales: parseInt(formData.get('copiasTotales')) || 10,
+        copiasDisponibles: parseInt(formData.get('copiasDisponibles')) || 10,
+        precioAlquiler: parseFloat(formData.get('precioAlquiler')) || 3.99,
+        disponibleParaAlquiler: true
+    };
+
+    console.log('📤 Enviando contenido:', contenido);
+
+    try {
+        const response = await fetch(APP_CONTEXT + '/inventario/api/contenidos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(contenido)
+        });
+
+        console.log('📨 Respuesta del servidor:', response.status, response.statusText);
+
+        if (response.ok) {
+            const resultado = await response.json();
+            console.log('✅ Contenido creado:', resultado);
+            showSuccess('Contenido agregado exitosamente');
+            form.reset();
+            // Recargar la página para ver el nuevo contenido
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            // Intentar leer el mensaje de error del servidor
+            let errorMsg = 'Error al agregar el contenido';
+            try {
+                const errorData = await response.json();
+                console.error('❌ Error del servidor:', errorData);
+                errorMsg = errorData.message || errorData.error || errorMsg;
+            } catch (e) {
+                const errorText = await response.text();
+                console.error('❌ Error del servidor (texto):', errorText);
+            }
+            showError(errorMsg + ' (Status: ' + response.status + ')');
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        showError('Error de conexión al agregar contenido: ' + error.message);
+    }
+}
+
+/**
+ * Importar contenido desde API externa
+ */
+async function importarDesdeAPI(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const apiSource = form.querySelector('[name="apiSource"]').value;
+    const searchQuery = form.querySelector('[name="searchQuery"]').value;
+
+    showInfo('Buscando en ' + apiSource + '...');
+
+    try {
+        // Aquí se haría la llamada real a la API externa
+        // Por ahora solo mostramos un mensaje
+        showInfo('Funcionalidad de importación desde API en desarrollo');
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al buscar en API externa');
+    }
+}
+
+/**
+ * Importación masiva desde archivo
+ */
+async function importarMasivo(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const archivo = form.querySelector('[name="archivo"]').files[0];
+
+    if (!archivo) {
+        showError('Por favor selecciona un archivo');
+        return;
+    }
+
+    showInfo('Procesando archivo ' + archivo.name + '...');
+
+    // Aquí se procesaría el archivo CSV o JSON
+    // Por ahora solo mostramos un mensaje
+    showInfo('Funcionalidad de importación masiva en desarrollo');
+}
+
+/**
+ * Filtrar contenidos en la tabla (VERSIÓN CORRECTA PARA NUEVO JSP)
+ */
+function filtrarContenidos() {
+    // Obtener valores de los filtros
+    const searchInput = document.getElementById('search-catalogo');
+    const filterTipoSelect = document.getElementById('filter-tipo');
+    const filterGeneroSelect = document.getElementById('filter-genero');
+    const filterEstadoSelect = document.getElementById('filter-estado');
+
+    // Verificar que existen los elementos
+    if (!searchInput || !filterTipoSelect || !filterGeneroSelect || !filterEstadoSelect) {
+        console.error('No se encontraron los elementos de filtro');
+        return;
+    }
+
+    const searchText = searchInput.value.toLowerCase().trim();
+    const filterTipo = filterTipoSelect.value;
+    const filterGenero = filterGeneroSelect.value;
+    const filterEstado = filterEstadoSelect.value;
+
+    const rows = document.querySelectorAll('#tabla-contenidos tr');
+    let contadorVisibles = 0;
+
+    rows.forEach(row => {
+        // Solo procesar filas con datos (no headers ni mensajes vacíos)
+        if (row.querySelector('td') && row.cells.length >= 9) {
+            const titulo = row.cells[2]?.textContent.toLowerCase().trim() || '';
+            const tipoBadge = row.querySelector('.badge')?.textContent.trim() || '';
+            const genero = row.cells[5]?.textContent.trim() || '';
+            const estadoBadge = row.querySelector('.status-badge')?.textContent.trim() || '';
+
+            let mostrar = true;
+
+            // Filtro de búsqueda por título
+            if (searchText && !titulo.includes(searchText)) {
+                mostrar = false;
+            }
+
+            // Filtro de tipo (PELICULA/SERIE)
+            if (filterTipo) {
+                // Normalizar comparación
+                const tipoNormalizado = filterTipo === 'PELICULA' ? 'película' : 'serie';
+                if (!tipoBadge.toLowerCase().includes(tipoNormalizado)) {
+                    mostrar = false;
+                }
+            }
+
+            // Filtro de género
+            if (filterGenero && genero !== filterGenero) {
+                mostrar = false;
+            }
+
+            // Filtro de estado
+            if (filterEstado) {
+                if (filterEstado === 'disponible' && !estadoBadge.toLowerCase().includes('disponible')) {
+                    mostrar = false;
+                }
+                if (filterEstado === 'no-disponible' && !estadoBadge.toLowerCase().includes('no disponible')) {
+                    mostrar = false;
+                }
+                if (filterEstado === 'stock-bajo' && !estadoBadge.toLowerCase().includes('stock bajo')) {
+                    mostrar = false;
+                }
+            }
+
+            // Aplicar visibilidad
+            if (mostrar) {
+                row.style.display = '';
+                contadorVisibles++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+
+    // Mostrar mensaje si no hay resultados
+    console.log(`Filtrado completo: ${contadorVisibles} filas visibles`);
+}
+
+/**
+ * Editar contenido existente - IMPLEMENTACIÓN COMPLETA
+ */
+async function editarContenido(id) {
+    console.log('📝 Abriendo editor para contenido ID:', id);
+
+    try {
+        // Obtener datos del contenido desde el servidor
+        const response = await fetch(APP_CONTEXT + '/inventario/api/contenidos/' + id);
+
+        if (!response.ok) {
+            showError('No se pudo cargar el contenido');
+            return;
+        }
+
+        const contenido = await response.json();
+        console.log('✅ Contenido cargado:', contenido);
+
+        // Llenar el formulario con los datos actuales
+        document.getElementById('edit-id').value = contenido.id || '';
+        document.getElementById('edit-titulo').value = contenido.titulo || '';
+        document.getElementById('edit-tipo').value = contenido.tipo || 'PELICULA';
+        document.getElementById('edit-anio').value = contenido.anio || '';
+        document.getElementById('edit-duracion').value = contenido.duracion || '';
+        document.getElementById('edit-director').value = contenido.director || '';
+        document.getElementById('edit-genero').value = contenido.genero || '';
+        document.getElementById('edit-sinopsis').value = contenido.descripcion || '';
+        document.getElementById('edit-imagenUrl').value = contenido.imagenUrl || '';
+        document.getElementById('edit-copiasTotales').value = contenido.copiasTotales || 0;
+        document.getElementById('edit-copiasDisponibles').value = contenido.copiasDisponibles || 0;
+        document.getElementById('edit-precioAlquiler').value = contenido.precioAlquiler || 0;
+        document.getElementById('edit-disponible').value = contenido.disponibleParaAlquiler ? 'true' : 'false';
+
+        // Mostrar el modal
+        document.getElementById('modal-editar-contenido').style.display = 'block';
+
+    } catch (error) {
+        console.error('❌ Error al cargar contenido:', error);
+        showError('Error de conexión al cargar el contenido');
+    }
+}
+
+/**
+ * Cerrar modal de edición
+ */
+function cerrarModalEditar() {
+    document.getElementById('modal-editar-contenido').style.display = 'none';
+    document.getElementById('form-editar-contenido').reset();
+}
+
+/**
+ * Guardar cambios del contenido editado
+ */
+async function guardarEdicionContenido(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = formData.get('id');
+
+    const contenido = {
+        id: parseInt(id),
+        titulo: formData.get('titulo'),
+        tipo: formData.get('tipo'),
+        anio: parseInt(formData.get('anio')) || null,
+        duracion: parseInt(formData.get('duracion')) || null,
+        director: formData.get('director') || null,
+        genero: formData.get('genero') || null,
+        descripcion: formData.get('sinopsis') || null,
+        imagenUrl: formData.get('imagenUrl') || null,
+        copiasTotales: parseInt(formData.get('copiasTotales')) || 0,
+        copiasDisponibles: parseInt(formData.get('copiasDisponibles')) || 0,
+        precioAlquiler: parseFloat(formData.get('precioAlquiler')) || 0,
+        disponibleParaAlquiler: formData.get('disponibleParaAlquiler') === 'true'
+    };
+
+    console.log('📤 Actualizando contenido:', contenido);
+
+    try {
+        const response = await fetch(APP_CONTEXT + '/inventario/api/contenidos/' + id, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(contenido)
+        });
+
+        console.log('📨 Respuesta del servidor:', response.status);
+
+        if (response.ok) {
+            const resultado = await response.json();
+            console.log('✅ Contenido actualizado:', resultado);
+            showSuccess('Contenido actualizado exitosamente');
+            cerrarModalEditar();
+            // Recargar la página para ver los cambios
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            let errorMsg = 'Error al actualizar el contenido';
+            try {
+                const errorData = await response.json();
+                console.error('❌ Error del servidor:', errorData);
+                errorMsg = errorData.message || errorData.error || errorMsg;
+            } catch (e) {
+                const errorText = await response.text();
+                console.error('❌ Error del servidor (texto):', errorText);
+            }
+            showError(errorMsg + ' (Status: ' + response.status + ')');
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        showError('Error de conexión al actualizar contenido: ' + error.message);
+    }
+}
+
+/**
+ * Gestionar copias de un contenido
+ */
+function gestionarCopias(id) {
+    const nuevasCopias = prompt('¿Cuántas copias totales desea tener?');
+
+    if (nuevasCopias !== null && !isNaN(nuevasCopias)) {
+        showInfo('Actualizar copias del contenido ID: ' + id + ' a ' + nuevasCopias + ' (Funcionalidad en desarrollo)');
+    }
+}
+
+/**
+ * Eliminar contenido
+ */
+async function eliminarContenido(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este contenido?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(APP_CONTEXT + '/inventario/api/contenidos/' + id, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showSuccess('Contenido eliminado exitosamente');
+            // Recargar la página
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showError('Error al eliminar el contenido');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error de conexión al eliminar contenido');
+    }
+}
+
+/**
+ * Sincronizar con APIs externas
+ */
+async function sincronizarAPIs() {
+    showInfo('Sincronizando con APIs externas...');
+
+    try {
+        // Aquí se llamaría al backend para sincronizar
+        showInfo('Funcionalidad de sincronización en desarrollo');
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al sincronizar con APIs');
+    }
+}
+
+/**
+ * Exportar catálogo
+ */
+function exportarCatalogo() {
+    const formato = prompt('¿En qué formato desea exportar? (CSV/JSON)', 'CSV');
+
+    if (formato) {
+        showInfo('Exportando catálogo en formato ' + formato.toUpperCase() + '...');
+        // Aquí se haría la exportación real
+    }
+}
+
+/**
+ * Aumentar stock de un contenido
+ */
+function aumentarStock(id) {
+    const cantidad = prompt('¿Cuántas copias desea agregar?');
+
+    if (cantidad !== null && !isNaN(cantidad)) {
+        showInfo('Agregando ' + cantidad + ' copias al contenido ID: ' + id + ' (Funcionalidad en desarrollo)');
+    }
+}
+
+/**
+ * Cargar géneros en el filtro desde el servidor
+ */
+async function cargarGenerosFiltro() {
+    try {
+        const response = await fetch(APP_CONTEXT + '/api/categorias/tipo/GENERO');
+
+        if (response.ok) {
+            const generos = await response.json();
+            const select = document.getElementById('filter-genero');
+
+            if (select && select.options.length <= 1) { // Solo tiene "Todos los géneros"
+                generos.forEach(genero => {
+                    const option = document.createElement('option');
+                    option.value = genero.nombre;
+                    option.textContent = genero.nombre;
+                    select.appendChild(option);
+                });
+            }
+
+            // También actualizar el select del formulario
+            const selectForm = document.getElementById('select-generos');
+            if (selectForm && selectForm.options.length <= 1) {
+                generos.forEach(genero => {
+                    const option = document.createElement('option');
+                    option.value = genero.nombre;
+                    option.textContent = genero.nombre;
+                    selectForm.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar géneros:', error);
     }
 }

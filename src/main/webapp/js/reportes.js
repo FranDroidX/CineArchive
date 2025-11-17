@@ -289,97 +289,9 @@ function renderizarTopGeneros(generos) {
 }
 
 // =====================================
-// GENERACIÓN DE REPORTES
+// GENERACIÓN DE REPORTES - SECCIÓN ELIMINADA
 // =====================================
 
-/**
- * Generar reporte específico
- */
-async function generarReporte(tipoReporte) {
-    try {
-        mostrarNotificacion('info', `Generando reporte de ${tipoReporte}...`);
-
-        const params = new URLSearchParams(filtrosActuales);
-        let endpoint = '';
-
-        switch (tipoReporte) {
-            case 'mas-alquilados':
-                endpoint = '/cinearchive/reportes/api/contenidos-mas-alquilados';
-                break;
-            case 'demografico':
-                endpoint = '/cinearchive/reportes/api/analisis-demografico';
-                break;
-            case 'tendencias':
-                endpoint = '/cinearchive/reportes/api/tendencias-temporales';
-                break;
-            case 'comportamiento':
-                endpoint = '/cinearchive/reportes/api/comportamiento-usuarios';
-                break;
-            default:
-                throw new Error('Tipo de reporte no reconocido');
-        }
-
-        const response = await fetch(`${endpoint}?${params}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const reporte = await response.json();
-
-            // Guardar en caché
-            reportesCache[tipoReporte] = reporte;
-
-            // Descargar como archivo
-            descargarReporteComoArchivo(reporte, tipoReporte);
-
-            mostrarNotificacion('success', 'Reporte generado exitosamente');
-        } else {
-            throw new Error('Error en la respuesta del servidor');
-        }
-    } catch (error) {
-        console.error('Error al generar reporte:', error);
-        mostrarNotificacion('error', 'Error al generar el reporte');
-
-        // Generar reporte simulado
-        generarReporteSimulado(tipoReporte);
-    }
-}
-
-/**
- * Descargar reporte como archivo
- */
-function descargarReporteComoArchivo(data, tipoReporte) {
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const filename = `reporte_${tipoReporte}_${timestamp}.json`;
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-}
-
-/**
- * Ver reporte completo
- */
-function verReporteCompleto(tipo) {
-    // Abrir modal o nueva pestaña con el reporte completo
-    mostrarNotificacion('info', `Abriendo reporte completo de ${tipo}...`);
-
-    // Por ahora, simplemente mostrar información
-    if (reportesCache[tipo]) {
-        console.log('Datos del reporte:', reportesCache[tipo]);
-    }
-}
 
 // =====================================
 // GESTIÓN DE FILTROS
@@ -485,29 +397,7 @@ function renderizarTopGenerosSimulados() {
     renderizarTopGeneros(generosSimulados);
 }
 
-/**
- * Generar reporte simulado
- */
-function generarReporteSimulado(tipoReporte) {
-    const reporteSimulado = {
-        tipo: tipoReporte,
-        fechaGeneracion: new Date().toISOString(),
-        filtros: filtrosActuales,
-        datos: {
-            resumen: `Datos simulados para reporte de ${tipoReporte}`,
-            registros: 50,
-            metricas: {
-                total: 1000,
-                promedio: 20,
-                maximo: 150,
-                minimo: 1
-            }
-        }
-    };
-
-    descargarReporteComoArchivo(reporteSimulado, tipoReporte);
-    mostrarNotificacion('info', 'Reporte simulado generado (modo offline)');
-}
+// Función generarReporteSimulado eliminada
 
 // =====================================
 // FUNCIONES DE UTILIDAD
@@ -601,8 +491,6 @@ function mostrarNotificacion(tipo, mensaje) {
 
 // Hacer funciones disponibles globalmente para uso en HTML
 window.cargarDashboardCompleto = cargarDashboardCompleto;
-window.generarReporte = generarReporte;
-window.verReporteCompleto = verReporteCompleto;
 window.actualizarAnalytics = actualizarAnalytics;
 window.resetearFiltros = resetearFiltros;
 

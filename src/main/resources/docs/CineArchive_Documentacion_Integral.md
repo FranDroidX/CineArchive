@@ -270,7 +270,7 @@ Disponible en `db/modelo_de_BD_CineArchiveV2.mwb` y replicado en `cineArchiveBD.
 | ABM completos | ✔ Usuarios, contenido, categorías, métodos de pago, listas. |
 | Casos de uso documentados | ✔ Ver sección UC. |
 | Manual por actor | ✔ Ver sección 7. |
-| GitHub colaborativo | ✔ Repositorio indicado en portada (actualizar link). |
+| GitHub colaborativo | ✔ Repositorio indicado en portada. |
 
 ---
 **Fin de la Documentación Integral – CineArchive**

@@ -4,7 +4,6 @@
 - **Materia:** Programación II (2.603) – 2025
 - **Docente:** Miguel Silva
 - **Integrantes:** Francisco Chiminelli, Franco Vilaseco, Martín Zembo
-- **Curso:** (Completar)
 - **Proyecto:** CineArchive – Plataforma de alquiler y gestión de contenido audiovisual
 - **Repositorio GitHub:** https://github.com/x-chama-x/CineArchive
 

@@ -4,6 +4,7 @@ import edu.utn.inspt.cinearchive.backend.modelo.Usuario;
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario.Rol;
 import edu.utn.inspt.cinearchive.backend.repositorio.UsuarioRepository;
 import edu.utn.inspt.cinearchive.backend.util.PasswordUtil;
+import edu.utn.inspt.cinearchive.security.SessionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,10 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    // No inyectamos SessionRegistry por defecto; usamos la instancia estática cuando esté disponible
+    @Autowired(required = false)
+    private SessionRegistry sessionRegistry;
 
     // ============================================================
     // MÉTODOS PRINCIPALES DE AUTENTICACIÓN Y REGISTRO
@@ -427,6 +432,14 @@ public class UsuarioService {
         }
         usuario.setRol(nuevoRol);
         usuarioRepository.save(usuario);
+
+        // Invalidar sesiones del usuario para que el cambio sea efectivo inmediatamente
+        try {
+            SessionRegistry reg = SessionRegistry.getInstance();
+            if (reg != null) reg.invalidateSessionsForUser(usuarioId);
+        } catch (Exception e) {
+            System.err.println("Error invalidando sesiones en cambiarRol para usuario " + usuarioId + ": " + e.getMessage());
+        }
     }
 
     // ============================================================

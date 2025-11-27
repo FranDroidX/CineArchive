@@ -2,7 +2,7 @@ package edu.utn.inspt.cinearchive.frontend.controlador;
 
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario;
 import edu.utn.inspt.cinearchive.backend.servicio.UsuarioService;
-import org.mindrot.jbcrypt.BCrypt;
+import edu.utn.inspt.cinearchive.security.SessionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -118,6 +118,16 @@ public class LoginController {
             session.setAttribute("usuarioNombre", usuario.getNombre());
             session.setAttribute("usuarioEmail", usuario.getEmail());
             session.setAttribute("usuarioRol", usuario.getRol().toString());
+
+            // Registrar sesión en el SessionRegistry para invalidaciones futuras
+            try {
+                SessionRegistry reg = SessionRegistry.getInstance();
+                if (reg != null) {
+                    reg.registerSession(usuario.getId(), session);
+                }
+            } catch (Exception e) {
+                System.err.println("No se pudo registrar sesión en SessionRegistry: " + e.getMessage());
+            }
 
             // 5. Establecer tiempo de sesión (30 minutos)
             session.setMaxInactiveInterval(30 * 60);

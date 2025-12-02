@@ -310,6 +310,7 @@
         }, 5000);
     </script>
 
+    <jsp:include page="/WEB-INF/views/fragments/footer.jsp" />
 </body>
 </html>
 

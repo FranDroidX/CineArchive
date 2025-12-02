@@ -31,7 +31,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
         "edu.utn.inspt.cinearchive.backend.config",
         "edu.utn.inspt.cinearchive.backend.servicio",
         "edu.utn.inspt.cinearchive.backend.repositorio",
-        "edu.utn.inspt.cinearchive.backend.util"  // ✅ AGREGADO del fork
+        "edu.utn.inspt.cinearchive.backend.util",  // ✅ AGREGADO del fork
+        // Asegurar que se escaneen beans de seguridad y utilidades transversales
+        "edu.utn.inspt.cinearchive.security"
     },
     excludeFilters = {
         @Filter(type = FilterType.ANNOTATION, classes = EnableWebMvc.class)

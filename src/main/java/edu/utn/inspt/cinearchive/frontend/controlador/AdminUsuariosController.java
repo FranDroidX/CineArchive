@@ -3,6 +3,7 @@ package edu.utn.inspt.cinearchive.frontend.controlador;
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario;
 import edu.utn.inspt.cinearchive.backend.modelo.Usuario.Rol;
 import edu.utn.inspt.cinearchive.backend.servicio.UsuarioService;
+import edu.utn.inspt.cinearchive.security.SessionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +37,8 @@ public class AdminUsuariosController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    // No inyectamos SessionRegistry para evitar problemas en contextos no gestionados; usamos la instancia estática.
 
     // ============================================================
     // LISTADO Y BÚSQUEDA DE USUARIOS
@@ -424,7 +427,7 @@ public class AdminUsuariosController {
             }
 
             // Prevenir que un admin se desactive a sí mismo
-            if (usuario.getId() == usuarioLogueado.getId() && !activo) {
+            if (usuario.getId() != null && usuarioLogueado.getId() != null && usuario.getId().equals(usuarioLogueado.getId()) && !activo) {
                 redirectAttributes.addFlashAttribute("error",
                         "No puedes desactivar tu propia cuenta");
                 return "redirect:/admin/usuarios/editar/" + id;
@@ -464,6 +467,14 @@ public class AdminUsuariosController {
 
             // Guardar cambios
             usuarioService.actualizar(usuario);
+
+            // Invalidar sesiones del usuario actualizado para que sus permisos se revaliden
+            try {
+                SessionRegistry reg = SessionRegistry.getInstance();
+                if (reg != null) reg.invalidateSessionsForUser(id);
+            } catch (Exception e) {
+                System.err.println("Error invalidando sesiones tras editar usuario " + id + ": " + e.getMessage());
+            }
 
             // Mensaje de éxito
             redirectAttributes.addFlashAttribute("mensaje",
@@ -511,7 +522,6 @@ public class AdminUsuariosController {
         }
 
         try {
-            // Buscar usuario
             Usuario usuario = usuarioService.buscarPorId(id);
             if (usuario == null) {
                 redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
@@ -519,7 +529,7 @@ public class AdminUsuariosController {
             }
 
             // Prevenir que un admin se desactive a sí mismo
-            if (usuario.getId() == usuarioLogueado.getId()) {
+            if (usuario.getId() != null && usuarioLogueado.getId() != null && usuario.getId().equals(usuarioLogueado.getId())) {
                 redirectAttributes.addFlashAttribute("error",
                         "No puedes cambiar el estado de tu propia cuenta");
                 return "redirect:/admin/usuarios";
@@ -538,12 +548,18 @@ public class AdminUsuariosController {
                 }
             }
 
-            // Cambiar estado (toggle)
-            boolean nuevoEstado = !usuario.getActivo();
-            boolean exito = usuarioService.cambiarEstado(id, nuevoEstado);
+            boolean exito = usuarioService.cambiarEstado(id, !usuario.getActivo());
 
             if (exito) {
-                String accion = nuevoEstado ? "activado" : "desactivado";
+                // Invalidar sesiones del usuario cuyo estado cambió
+                try {
+                    SessionRegistry reg = SessionRegistry.getInstance();
+                    if (reg != null) reg.invalidateSessionsForUser(id);
+                } catch (Exception e) {
+                    System.err.println("Error invalidando sesiones tras cambiar estado usuario " + id + ": " + e.getMessage());
+                }
+
+                String accion = !usuario.getActivo() ? "activado" : "desactivado";
                 redirectAttributes.addFlashAttribute("mensaje",
                         "Usuario '" + usuario.getNombre() + "' " + accion + " exitosamente");
                 redirectAttributes.addFlashAttribute("tipoMensaje", "success");
@@ -591,6 +607,14 @@ public class AdminUsuariosController {
             boolean exito = usuarioService.activar(id);
 
             if (exito) {
+                // Invalidar sesiones para forzar reload (aunque activación probablemente no necesite logout)
+                try {
+                    SessionRegistry reg = SessionRegistry.getInstance();
+                    if (reg != null) reg.invalidateSessionsForUser(id);
+                } catch (Exception e) {
+                    System.err.println("Error invalidando sesiones tras activar usuario " + id + ": " + e.getMessage());
+                }
+
                 redirectAttributes.addFlashAttribute("mensaje",
                         "Usuario '" + usuario.getNombre() + "' activado exitosamente");
                 redirectAttributes.addFlashAttribute("tipoMensaje", "success");
@@ -658,6 +682,14 @@ public class AdminUsuariosController {
             boolean exito = usuarioService.desactivar(id);
 
             if (exito) {
+                // Invalidar sesiones del usuario desactivado
+                try {
+                    SessionRegistry reg = SessionRegistry.getInstance();
+                    if (reg != null) reg.invalidateSessionsForUser(id);
+                } catch (Exception e) {
+                    System.err.println("Error invalidando sesiones tras desactivar usuario " + id + ": " + e.getMessage());
+                }
+
                 redirectAttributes.addFlashAttribute("mensaje",
                         "Usuario '" + usuario.getNombre() + "' desactivado exitosamente");
                 redirectAttributes.addFlashAttribute("tipoMensaje", "success");
@@ -735,6 +767,14 @@ public class AdminUsuariosController {
             boolean exito = usuarioService.eliminar(id);
 
             if (exito) {
+                // Invalidar sesiones del usuario eliminado
+                try {
+                    SessionRegistry reg = SessionRegistry.getInstance();
+                    if (reg != null) reg.invalidateSessionsForUser(id);
+                } catch (Exception e) {
+                    System.err.println("Error invalidando sesiones tras eliminar usuario " + id + ": " + e.getMessage());
+                }
+
                 redirectAttributes.addFlashAttribute("mensaje",
                         "Usuario '" + nombreUsuario + "' eliminado permanentemente");
                 redirectAttributes.addFlashAttribute("tipoMensaje", "warning");
@@ -798,7 +838,7 @@ public class AdminUsuariosController {
                             .count() <= 1);
             model.addAttribute("usuarioLogueado", usuarioLogueado);
 
-            model.addAttribute("esMismaCuenta", usuario.getId() == usuarioLogueado.getId());
+            model.addAttribute("esMismaCuenta", usuario.getId() != null && usuarioLogueado.getId() != null && usuario.getId().equals(usuarioLogueado.getId()));
 
             return "admin/usuario-detalle";
 
@@ -857,6 +897,14 @@ public class AdminUsuariosController {
             }
 
             usuarioService.cambiarRol(id, nuevoRol);
+
+            // cambiarRol en el service ya invalida sesiones, pero dejamos este llamado por compatibilidad
+            try {
+                SessionRegistry reg = SessionRegistry.getInstance();
+                if (reg != null) reg.invalidateSessionsForUser(id);
+            } catch (Exception e) {
+                System.err.println("Error invalidando sesiones tras cambiar rol usuario " + id + ": " + e.getMessage());
+            }
 
             redirectAttributes.addFlashAttribute("mensaje",
                     "Rol de '" + usuario.getNombre() + "' cambiado a " + nuevoRol + " exitosamente");

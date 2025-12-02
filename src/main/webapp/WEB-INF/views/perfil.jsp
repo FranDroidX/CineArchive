@@ -153,6 +153,125 @@
             color: var(--primary-color);
             margin-bottom: 15px;
         }
+
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .profile-container {
+                max-width: 100%;
+                margin: 15px 10px;
+                padding: 25px 20px;
+                border-radius: 8px;
+            }
+
+            .profile-title {
+                font-size: 24px;
+            }
+
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                margin-bottom: 15px;
+            }
+
+            .profile-info {
+                padding: 15px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 0;
+                gap: 8px;
+            }
+
+            .info-label {
+                font-size: 14px;
+            }
+
+            .info-value {
+                text-align: left;
+                font-size: 14px;
+                word-break: break-word;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 12px 20px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-container {
+                margin: 10px 8px;
+                padding: 20px 15px;
+            }
+
+            .profile-title {
+                font-size: 20px;
+            }
+
+            .profile-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .profile-info {
+                padding: 15px;
+            }
+
+            .info-row {
+                padding: 8px 0;
+            }
+
+            .info-label,
+            .info-value {
+                font-size: 13px;
+            }
+
+            .status-badge,
+            .role-badge {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .profile-container {
+                margin: 10px 5px;
+                padding: 18px 12px;
+            }
+
+            .profile-title {
+                font-size: 18px;
+            }
+
+            .profile-header {
+                margin-bottom: 20px;
+            }
+
+            .profile-info {
+                padding: 12px;
+            }
+
+            .info-label,
+            .info-value {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>

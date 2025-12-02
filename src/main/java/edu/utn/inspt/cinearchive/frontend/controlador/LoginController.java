@@ -206,13 +206,13 @@ public class LoginController {
 
     /**
      * Página de inicio después del login
-     * GET /index o GET /
+     * GET /index
      *
      * @param session Sesión para verificar el usuario
      * @param model Modelo para pasar datos
      * @return Vista de inicio según el rol
      */
-    @GetMapping({"/", "/index"})
+    @GetMapping("/index")
     public String inicio(HttpSession session, Model model) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
 

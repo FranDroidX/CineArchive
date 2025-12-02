@@ -12,6 +12,13 @@
 
 /* Global box-sizing to avoid overflow */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Prevenir scroll horizontal en todas las pantallas */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
 /* Estilos para mensajes de alerta */
 .alert {
     padding: 15px;
@@ -62,8 +69,9 @@ header {
     padding: 10px 0;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    width: 100%;
 }
 
 nav {
@@ -73,6 +81,7 @@ nav {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    width: 100%;
 }
 
 .logo {
@@ -149,12 +158,14 @@ nav {
 /* Search & Filter Section */
 .search-section {
     margin: 30px 0;
+    width: 100%;
 }
 
 .search-container {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
+    width: 100%;
 }
 
 .search-input {
@@ -165,6 +176,7 @@ nav {
     background-color: var(--secondary-color);
     color: var(--text-color);
     font-size: 16px;
+    min-width: 0;
 }
 
 .search-btn {
@@ -175,6 +187,7 @@ nav {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;
+    white-space: nowrap;
 }
 
 .search-btn:hover {
@@ -185,6 +198,7 @@ nav {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .filter-select {
@@ -194,6 +208,8 @@ nav {
     background-color: var(--secondary-color);
     color: var(--text-color);
     cursor: pointer;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 /* Movie Cards */
@@ -222,13 +238,35 @@ h2 {
     gap: 20px;
     overflow-x: auto;
     overflow-y: visible; /* permitir que el scale no se corte verticalmente */
-    padding: 20px 40px; /* actualizar para coincidir con scroll-padding */
+    padding: 20px 10px; /* reducir padding en móviles */
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) var(--surface-color);
     /* scroll-snap eliminado: el acomodo se hará vía JS al soltar */
-    scroll-padding-left: 40px;
-    scroll-padding-right: 40px;
+    scroll-padding-left: 10px;
+    scroll-padding-right: 10px;
+    width: 100%;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+}
+
+/* Scrollbar personalizado para webkit (Chrome, Safari, Edge) */
+.movie-row::-webkit-scrollbar {
+    height: 8px;
+}
+
+.movie-row::-webkit-scrollbar-track {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+.movie-row::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.movie-row::-webkit-scrollbar-thumb:hover {
+    background: #f40612;
 }
 
 /* Catálogo: una sola fila tipo slide */
@@ -1124,6 +1162,8 @@ h2 {
     padding: 30px 0;
     margin-bottom: 30px;
     border-radius: 0 0 15px 15px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Badges de Roles */
@@ -1560,6 +1600,8 @@ footer {
     text-align: center;
     padding: 20px;
     margin-top: 40px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .footer-links {
@@ -1727,8 +1769,16 @@ footer {
 
 /* Responsive */
 @media (max-width: 768px) {
+    /* Header mobile - sin modificaciones de posición que causen problemas */
+    nav {
+        width: 100%;
+        padding: 0 15px;
+    }
+
     .menu-toggle {
         display: block;
+        z-index: 1001;
+        position: relative;
     }
 
     .nav-links {
@@ -1737,16 +1787,156 @@ footer {
         top: 100%;
         left: 0;
         right: 0;
+        width: 100%;
         background-color: var(--surface-color);
         flex-direction: column;
         align-items: center;
         padding: 20px;
+        box-sizing: border-box;
+        z-index: 999;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
     .nav-links.active {
         display: flex;
     }
 
+    /* Container mobile */
+    .container {
+        padding: 15px 10px;
+        width: 100%;
+    }
+
+    /* Search section mobile */
+    .search-section {
+        margin: 20px 0;
+    }
+
+    .search-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-input,
+    .search-btn {
+        width: 100%;
+    }
+
+    .filter-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-select,
+    .btn-secondary {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .results-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    /* Movie rows mobile */
+    .movie-row {
+        padding: 20px 5px;
+        gap: 15px;
+        scroll-padding-left: 5px;
+        scroll-padding-right: 5px;
+    }
+
+    .movie-card {
+        width: 140px;
+        flex-shrink: 0;
+    }
+
+    .movie-card img {
+        height: 210px;
+    }
+
+    .movie-row .movie-card {
+        width: 140px;
+    }
+
+    .movie-row .movie-card img {
+        height: 210px;
+    }
+
+    .movie-info {
+        padding: 10px;
+    }
+
+    .movie-title {
+        font-size: 12px;
+        min-height: 2.4em;
+    }
+
+    .movie-rating {
+        font-size: 12px;
+    }
+
+    .rental-price {
+        font-size: 12px;
+    }
+
+    .rent-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .list-actions .btn-link {
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+
+    /* Desactivar hover en móviles para mejor experiencia táctil */
+    .movie-card:hover {
+        transform: scale(1.02);
+    }
+
+    /* Category section mobile */
+    .category {
+        margin-top: 30px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .category h2 {
+        font-size: 20px;
+        padding: 0 10px;
+        margin-bottom: 15px;
+    }
+
+    .catalogo-slide-viewport {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    /* Pagination mobile */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    /* Footer mobile */
+    footer {
+        padding: 15px 10px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Other responsive elements */
     .detail-hero {
         grid-template-columns: 1fr;
     }
@@ -1755,9 +1945,6 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .movie-card {
-        width: 150px;
-    }
 
     .my-review-card {
         flex-direction: column;
@@ -1777,12 +1964,132 @@ footer {
 }
 
 @media (max-width: 480px) {
-    .movie-grid .movie-card { width: calc(50% - 10px); }
-    .movie-card img { height: 180px; }
+    /* Ajustes para pantallas pequeñas */
+    .container {
+        padding: 10px 5px;
+    }
+
+    .movie-grid .movie-card {
+        width: calc(50% - 10px);
+    }
+
+    .movie-card {
+        width: 130px;
+    }
+
+    .movie-card img {
+        height: 195px;
+    }
+
+    .movie-row .movie-card {
+        width: 130px;
+    }
+
+    .movie-row .movie-card img {
+        height: 195px;
+    }
+
+    .movie-row {
+        padding: 15px 5px;
+        gap: 10px;
+    }
+
+    /* Hover mínimo en pantallas pequeñas */
+    .movie-card:hover {
+        transform: scale(1.01);
+    }
+
+    .movie-title {
+        font-size: 11px;
+    }
+
+    .movie-actions {
+        gap: 6px;
+    }
+
+    .rent-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .list-actions .btn-link {
+        font-size: 10px;
+        padding: 5px 6px;
+        min-height: 30px;
+    }
+
+    .search-btn {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .category h2 {
+        font-size: 18px;
+        padding: 0 5px;
+    }
+
+    nav {
+        padding: 0 10px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 360px) {
-    .movie-grid .movie-card { width: 100%; }
+    /* Ajustes para pantallas muy pequeñas */
+    .movie-grid .movie-card {
+        width: 100%;
+    }
+
+    .movie-card {
+        width: 120px;
+    }
+
+    .movie-card img {
+        height: 180px;
+    }
+
+    .movie-row .movie-card {
+        width: 120px;
+    }
+
+    .movie-row .movie-card img {
+        height: 180px;
+    }
+
+    .movie-row {
+        padding: 10px 5px;
+        gap: 8px;
+    }
+
+    .container {
+        padding: 10px 5px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .category h2 {
+        font-size: 16px;
+    }
+
+    .movie-actions {
+        gap: 5px;
+    }
+
+    .rent-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+
+    .list-actions .btn-link {
+        font-size: 9px;
+        padding: 4px 5px;
+        min-height: 28px;
+    }
 }
 
 .movie-grid {
@@ -1922,7 +2229,14 @@ footer {
 .detail-page .detail-info { min-width: 0; }
 
 /* Viewport para slides de catálogo (evita recortes en primeras/últimas) */
-.catalogo-slide-viewport { overflow: hidden; padding: 0; margin: 0; }
+.catalogo-slide-viewport {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
 .catalogo-slide { padding: 20px 40px; gap: 20px; }
 /* Asegurar una sola fila, sin wrap y scroll horizontal suave */
 .catalogo-slide { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: visible; scroll-behavior: smooth; }
@@ -1950,6 +2264,8 @@ body { overflow-x: hidden; }
     padding: 30px;
     margin-bottom: 0;
     border-radius: 15px;
+    position: relative;
+    z-index: 1;
 }
 
 .payment-methods-container .page-header h1 {

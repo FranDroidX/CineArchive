@@ -116,7 +116,7 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>cinearchive</finalName>
+    <finalName>ROOT</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -149,7 +149,7 @@
         <version>9.4.48.v20220622</version>
         <configuration>
           <webApp>
-            <contextPath>/cinearchive</contextPath>
+            <contextPath>/</contextPath>
           </webApp>
           <httpConnector>
             <port>8080</port>

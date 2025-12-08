@@ -134,11 +134,15 @@
                                     </form>
                                 </c:when>
                                 <c:otherwise>
-                                    <form action="${pageContext.request.contextPath}/metodos-pago/eliminar/${mp.id}" method="post" style="flex: 1;" onsubmit="return confirm('¿Está seguro que desea eliminar este método de pago?');">
-                                        <button type="submit" class="btn-action btn-danger-action">&#128465; Eliminar</button>
+                                    <form action="${pageContext.request.contextPath}/metodos-pago/activar/${mp.id}" method="post" style="flex: 1;">
+                                        <button type="submit" class="btn-action btn-primary-action">&#10004; Activar</button>
                                     </form>
                                 </c:otherwise>
                             </c:choose>
+
+                            <form action="${pageContext.request.contextPath}/metodos-pago/eliminar/${mp.id}" method="post" style="flex: 1;" onsubmit="return confirm('¿Está seguro que desea eliminar este método de pago? Esta acción no se puede deshacer.');">
+                                <button type="submit" class="btn-action btn-danger-action">&#128465; Eliminar</button>
+                            </form>
                         </div>
                     </div>
                 </c:forEach>

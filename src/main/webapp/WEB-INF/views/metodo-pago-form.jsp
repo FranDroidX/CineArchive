@@ -101,12 +101,14 @@
         </div>
 
         <div class="form-group checkbox-group">
+            <input type="hidden" name="preferido" value="false" />
             <input type="checkbox" id="preferido" name="preferido"
                    ${metodoPago.preferido ? 'checked' : ''} value="true" />
             <label for="preferido" style="margin: 0;">Marcar como método de pago preferido</label>
         </div>
 
         <div class="form-group checkbox-group">
+            <input type="hidden" name="activo" value="false" />
             <input type="checkbox" id="activo" name="activo"
                    ${empty metodoPago.id || metodoPago.activo ? 'checked' : ''} value="true" />
             <label for="activo" style="margin: 0;">Método de pago activo</label>

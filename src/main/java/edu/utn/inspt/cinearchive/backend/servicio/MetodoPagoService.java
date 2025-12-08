@@ -42,6 +42,11 @@ public interface MetodoPagoService {
     boolean desactivar(Long id, Long usuarioId);
 
     /**
+     * Activa un método de pago
+     */
+    boolean activar(Long id, Long usuarioId);
+
+    /**
      * Elimina permanentemente un método de pago
      */
     boolean eliminar(Long id, Long usuarioId);

@@ -32,6 +32,22 @@ public class MetodoPagoController {
     }
 
     /**
+     * Verifica si un array de parámetros contiene el valor "true"
+     * Útil para manejar checkboxes HTML que envían múltiples valores
+     */
+    private boolean contieneTrue(String[] params) {
+        if (params == null) {
+            return false;
+        }
+        for (String param : params) {
+            if ("true".equals(param)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Lista todos los métodos de pago del usuario
      */
     @GetMapping
@@ -101,6 +117,8 @@ public class MetodoPagoController {
      */
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute MetodoPago metodoPago,
+                         @RequestParam(value = "activo", required = false) String[] activoParams,
+                         @RequestParam(value = "preferido", required = false) String[] preferidoParams,
                          HttpSession session,
                          RedirectAttributes ra) {
         Usuario usuario = obtenerUsuarioSesion(session);
@@ -110,6 +128,11 @@ public class MetodoPagoController {
 
         try {
             metodoPago.setUsuarioId(usuario.getId());
+
+            // Manejar explícitamente los checkboxes
+            // Si alguno de los valores enviados es "true", el checkbox estaba marcado
+            metodoPago.setActivo(contieneTrue(activoParams));
+            metodoPago.setPreferido(contieneTrue(preferidoParams));
 
             if (metodoPago.getId() == null) {
                 // Crear nuevo
@@ -177,6 +200,31 @@ public class MetodoPagoController {
             }
         } catch (IllegalArgumentException e) {
             logger.log(Level.WARNING, "Error al desactivar: {0}", e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/metodos-pago";
+    }
+
+    /**
+     * Activa un método de pago
+     */
+    @PostMapping("/activar/{id}")
+    public String activar(@PathVariable Long id, HttpSession session, RedirectAttributes ra) {
+        Usuario usuario = obtenerUsuarioSesion(session);
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            boolean success = metodoPagoService.activar(id, usuario.getId());
+            if (success) {
+                ra.addFlashAttribute("msg", "Método de pago activado");
+            } else {
+                ra.addFlashAttribute("error", "No se pudo activar el método de pago");
+            }
+        } catch (IllegalArgumentException e) {
+            logger.log(Level.WARNING, "Error al activar: {0}", e.getMessage());
             ra.addFlashAttribute("error", e.getMessage());
         }
 

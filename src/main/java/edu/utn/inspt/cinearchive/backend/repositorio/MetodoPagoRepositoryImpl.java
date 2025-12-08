@@ -148,6 +148,13 @@ public class MetodoPagoRepositoryImpl implements MetodoPagoRepository {
     }
 
     @Override
+    public boolean activate(Long id) {
+        String sql = "UPDATE metodo_pago SET activo = 1 WHERE id = ?";
+        int rows = jdbcTemplate.update(sql, id);
+        return rows > 0;
+    }
+
+    @Override
     public boolean delete(Long id) {
         String sql = "DELETE FROM metodo_pago WHERE id = ?";
         int rows = jdbcTemplate.update(sql, id);

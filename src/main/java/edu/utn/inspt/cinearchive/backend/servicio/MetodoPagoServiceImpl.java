@@ -124,6 +124,21 @@ public class MetodoPagoServiceImpl implements MetodoPagoService {
     }
 
     @Override
+    public boolean activar(Long id, Long usuarioId) {
+        if (id == null || usuarioId == null) {
+            throw new IllegalArgumentException("ID de método de pago y usuario son requeridos");
+        }
+
+        // Validar que pertenece al usuario
+        if (!perteneceAlUsuario(id, usuarioId)) {
+            throw new IllegalArgumentException("No tiene permisos para activar este método de pago");
+        }
+
+        logger.info("Activando método de pago ID: " + id);
+        return metodoPagoRepository.activate(id);
+    }
+
+    @Override
     public boolean eliminar(Long id, Long usuarioId) {
         if (id == null || usuarioId == null) {
             throw new IllegalArgumentException("ID de método de pago y usuario son requeridos");

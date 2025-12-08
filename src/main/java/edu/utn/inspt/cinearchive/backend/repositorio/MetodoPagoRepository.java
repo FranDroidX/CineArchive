@@ -42,6 +42,11 @@ public interface MetodoPagoRepository {
     boolean deactivate(Long id);
 
     /**
+     * Activa un método de pago
+     */
+    boolean activate(Long id);
+
+    /**
      * Elimina un método de pago
      */
     boolean delete(Long id);

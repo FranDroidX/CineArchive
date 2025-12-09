@@ -370,7 +370,7 @@ public class AdminUsuariosController {
             @RequestParam(required = false) String passwordNueva,
             @RequestParam(required = false) String passwordConfirm,
             @RequestParam Rol rol,
-            @RequestParam Boolean activo,
+            @RequestParam(required = false, defaultValue = "false") Boolean activo,
             @RequestParam(required = false) String fechaNacimiento,
             RedirectAttributes redirectAttributes,
             HttpSession session) {

@@ -399,10 +399,6 @@
                                         </c:choose>
                                     </p>
                                 </div>
-                                <button class="btn-${contenido.copiasDisponibles == 0 ? 'primary' : 'secondary'}"
-                                        onclick="aumentarStock(${contenido.id})">
-                                    ${contenido.copiasDisponibles == 0 ? 'Renovar Licencias' : 'Aumentar Stock'}
-                                </button>
                             </div>
                         </c:forEach>
                     </div>

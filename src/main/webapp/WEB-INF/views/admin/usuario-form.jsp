@@ -10,7 +10,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title><c:choose><c:when test="${not empty usuario}">Editar</c:when><c:otherwise>Crear</c:otherwise></c:choose> Usuario - CineArchive</title>
+    <title><c:choose><c:when test="${not empty usuario.id}">Editar</c:when><c:otherwise>Crear</c:otherwise></c:choose> Usuario - CineArchive</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
         <div class="admin-panel">
             <h1>
                 <c:choose>
-                    <c:when test="${not empty usuario}">✏️ Editar Usuario</c:when>
+                    <c:when test="${not empty usuario.id}">✏️ Editar Usuario</c:when>
                     <c:otherwise>➕ Crear Nuevo Usuario</c:otherwise>
                 </c:choose>
             </h1>
@@ -38,12 +38,12 @@
             <!-- Formulario -->
             <section class="admin-section">
                 <form method="post"
-                      action="${pageContext.request.contextPath}/admin/usuarios/<c:choose><c:when test='${not empty usuario}'>editar/${usuario.id}</c:when><c:otherwise>crear</c:otherwise></c:choose>"
+                      action="${pageContext.request.contextPath}/admin/usuarios/<c:choose><c:when test='${not empty usuario.id}'>editar/${usuario.id}</c:when><c:otherwise>crear</c:otherwise></c:choose>"
                       id="formularioUsuario"
                       onsubmit="return validarFormulario()">
 
                     <!-- ID oculto para edición -->
-                    <c:if test="${not empty usuario}">
+                    <c:if test="${not empty usuario.id}">
                         <input type="hidden" name="id" value="${usuario.id}">
                     </c:if>
 
@@ -101,7 +101,7 @@
                         <h2>🔐 Credenciales de Acceso</h2>
 
                         <!-- Checkbox para cambiar contraseña (solo al editar) -->
-                        <c:if test="${not empty usuario}">
+                        <c:if test="${not empty usuario.id}">
                             <div style="background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                                     <input type="checkbox"
@@ -118,8 +118,8 @@
                             </div>
                         </c:if>
 
-                        <div id="passwordSection" style="${not empty usuario ? 'display: none;' : ''}">
-                            <c:if test="${not empty usuario}">
+                        <div id="passwordSection" style="${not empty usuario.id ? 'display: none;' : ''}">
+                            <c:if test="${not empty usuario.id}">
                                 <p style="color: #888; margin-bottom: 15px;">
                                     <strong>Nota:</strong> Establece una nueva contraseña para el usuario.
                                     El usuario deberá usar esta nueva contraseña para iniciar sesión.
@@ -130,17 +130,17 @@
                                 <!-- Contraseña -->
                                 <div class="form-group">
                                     <label for="password">
-                                        <strong><c:choose><c:when test="${empty usuario}">Contraseña</c:when><c:otherwise>Nueva Contraseña</c:otherwise></c:choose></strong>
-                                        <c:if test="${empty usuario}">
+                                        <strong><c:choose><c:when test="${empty usuario.id}">Contraseña</c:when><c:otherwise>Nueva Contraseña</c:otherwise></c:choose></strong>
+                                        <c:if test="${empty usuario.id}">
                                             <span style="color: #dc3545;">*</span>
                                         </c:if>
                                     </label>
                                     <input type="password"
                                            id="password"
-                                           name="${empty usuario ? 'password' : 'passwordNueva'}"
+                                           name="${empty usuario.id ? 'password' : 'passwordNueva'}"
                                            class="search-input"
                                            placeholder="Mínimo 6 caracteres"
-                                           ${empty usuario ? 'required' : ''}
+                                           ${empty usuario.id ? 'required' : ''}
                                            minlength="6"
                                            onkeyup="validarFortalezaPassword()">
                                     <div id="passwordStrength" style="height: 5px; margin-top: 5px; border-radius: 3px;"></div>
@@ -151,16 +151,16 @@
                                 <div class="form-group">
                                     <label for="confirmPassword">
                                         <strong>Confirmar Contraseña</strong>
-                                        <c:if test="${empty usuario}">
+                                        <c:if test="${empty usuario.id}">
                                             <span style="color: #dc3545;">*</span>
                                         </c:if>
                                     </label>
                                     <input type="password"
                                            id="confirmPassword"
-                                           name="${empty usuario ? 'confirmPassword' : 'passwordConfirm'}"
+                                           name="passwordConfirm"
                                            class="search-input"
                                            placeholder="Repite la contraseña"
-                                           ${empty usuario ? 'required' : ''}
+                                           ${empty usuario.id ? 'required' : ''}
                                            minlength="6">
                                 </div>
                             </div>
@@ -180,7 +180,7 @@
                                     <input type="radio"
                                            name="rol"
                                            value="USUARIO_REGULAR"
-                                           ${empty usuario || usuario.rol == 'USUARIO_REGULAR' ? 'checked' : ''}
+                                           ${empty usuario.id || usuario.rol == 'USUARIO_REGULAR' ? 'checked' : ''}
                                            required>
                                     <div style="padding: 20px; background-color: var(--surface-color); border: 2px solid var(--secondary-color); border-radius: 8px; text-align: center; transition: all 0.3s;">
                                         <div style="font-size: 30px; margin-bottom: 10px;">👤</div>
@@ -240,7 +240,7 @@
                                 <input type="checkbox"
                                        name="activo"
                                        value="true"
-                                       ${empty usuario || usuario.activo ? 'checked' : ''}
+                                       ${empty usuario.id || usuario.activo ? 'checked' : ''}
                                        style="width: 20px; height: 20px;">
                                 <div>
                                     <strong>Usuario Activo</strong>
@@ -251,7 +251,7 @@
                     </div>
 
                     <!-- Información adicional para edición -->
-                    <c:if test="${not empty usuario}">
+                    <c:if test="${not empty usuario.id}">
                         <div style="background-color: rgba(23, 162, 184, 0.1); border-left: 4px solid #17a2b8; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
                             <h3 style="margin-top: 0;">ℹ️ Información del Usuario</h3>
                             <p><strong>ID:</strong> ${usuario.id}</p>
@@ -266,14 +266,14 @@
                     <!-- Botones de Acción -->
                     <div class="action-buttons" style="margin-top: 40px;">
                         <button type="submit" class="btn-primary" style="font-size: 16px; padding: 15px 40px;">
-                            💾 <c:choose><c:when test="${not empty usuario}">Guardar Cambios</c:when><c:otherwise>Crear Usuario</c:otherwise></c:choose>
+                            💾 <c:choose><c:when test="${not empty usuario.id}">Guardar Cambios</c:when><c:otherwise>Crear Usuario</c:otherwise></c:choose>
                         </button>
 
                         <button type="button" class="btn-secondary" onclick="window.location.href='${pageContext.request.contextPath}/admin/usuarios'" style="font-size: 16px; padding: 15px 40px;">
                             ✖ Cancelar
                         </button>
 
-                        <c:if test="${not empty usuario}">
+                        <c:if test="${not empty usuario.id}">
                             <button type="button" class="btn-secondary" onclick="window.location.href='${pageContext.request.contextPath}/admin/usuarios/detalle/${usuario.id}'" style="font-size: 16px; padding: 15px 40px;">
                                 👁️ Ver Detalle
                             </button>

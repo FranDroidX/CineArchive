@@ -181,6 +181,73 @@ public class GestorInventarioController {
         }
     }
 
+    /**
+     * Actualizar copias de un contenido (REST)
+     * Permite gestionar las copias totales y disponibles de un contenido
+     */
+    @PatchMapping("/api/contenidos/{id}/copias")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> actualizarCopias(
+            @PathVariable Long id,
+            @RequestBody Map<String, Integer> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Optional<Contenido> contenidoOpt = contenidoService.obtenerPorId(id);
+
+            if (!contenidoOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "Contenido no encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            Integer nuevasCopiasTotales = request.get("copiasTotales");
+
+            if (nuevasCopiasTotales == null || nuevasCopiasTotales < 0) {
+                response.put("success", false);
+                response.put("message", "El número de copias debe ser un valor válido mayor o igual a 0");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Contenido contenido = contenidoOpt.get();
+            Integer copiasAnteriores = contenido.getCopiasTotales() != null ? contenido.getCopiasTotales() : 0;
+            Integer copiasDisponiblesAnteriores = contenido.getCopiasDisponibles() != null ? contenido.getCopiasDisponibles() : 0;
+
+            // Calcular diferencia y ajustar copias disponibles
+            int diferencia = nuevasCopiasTotales - copiasAnteriores;
+            int nuevasCopiasDisponibles = copiasDisponiblesAnteriores + diferencia;
+
+            // Asegurar que las copias disponibles no sean negativas
+            if (nuevasCopiasDisponibles < 0) {
+                nuevasCopiasDisponibles = 0;
+            }
+
+            // Asegurar que las copias disponibles no excedan el total
+            if (nuevasCopiasDisponibles > nuevasCopiasTotales) {
+                nuevasCopiasDisponibles = nuevasCopiasTotales;
+            }
+
+            contenido.setCopiasTotales(nuevasCopiasTotales);
+            contenido.setCopiasDisponibles(nuevasCopiasDisponibles);
+
+            // Actualizar disponibilidad para alquiler
+            contenido.setDisponibleParaAlquiler(nuevasCopiasDisponibles > 0);
+
+            contenidoService.guardar(contenido);
+
+            response.put("success", true);
+            response.put("message", "Copias actualizadas exitosamente");
+            response.put("copiasTotales", nuevasCopiasTotales);
+            response.put("copiasDisponibles", nuevasCopiasDisponibles);
+            response.put("titulo", contenido.getTitulo());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error al actualizar las copias: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     // ==================== GESTIÓN DE CATEGORÍAS ====================
 
     /**

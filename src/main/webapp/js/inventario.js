@@ -1024,11 +1024,49 @@ async function guardarEdicionContenido(event) {
 /**
  * Gestionar copias de un contenido
  */
-function gestionarCopias(id) {
+async function gestionarCopias(id) {
     const nuevasCopias = prompt('¿Cuántas copias totales desea tener?');
 
-    if (nuevasCopias !== null && !isNaN(nuevasCopias)) {
-        showInfo('Actualizar copias del contenido ID: ' + id + ' a ' + nuevasCopias + ' (Funcionalidad en desarrollo)');
+    if (nuevasCopias === null) {
+        // Usuario canceló
+        return;
+    }
+
+    const copiasTotales = parseInt(nuevasCopias, 10);
+
+    if (isNaN(copiasTotales) || copiasTotales < 0) {
+        showError('Por favor, ingrese un número válido mayor o igual a 0');
+        return;
+    }
+
+    try {
+        const response = await fetch(APP_CONTEXT + '/inventario/api/contenidos/' + id + '/copias', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ copiasTotales: copiasTotales })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showSuccess('Copias actualizadas exitosamente.\n' +
+                'Título: ' + data.titulo + '\n' +
+                'Copias totales: ' + data.copiasTotales + '\n' +
+                'Copias disponibles: ' + data.copiasDisponibles);
+
+            // Recargar la página para mostrar los cambios
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showError(data.message || 'Error al actualizar las copias');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error de conexión al actualizar las copias');
     }
 }
 

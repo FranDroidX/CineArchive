@@ -48,24 +48,6 @@ public class ReporteServiceImpl implements ReporteService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Reporte> obtenerPorAnalista(Integer analistaId) {
-        if (analistaId == null || analistaId <= 0) {
-            throw new IllegalArgumentException("El ID del analista debe ser válido");
-        }
-        return reporteRepository.findByAnalistaId(analistaId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Reporte> obtenerPorTipo(Reporte.TipoReporte tipo) {
-        if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de reporte es obligatorio");
-        }
-        return reporteRepository.findByTipoReporte(tipo);
-    }
-
-    @Override
     public Reporte guardar(Reporte reporte) {
         validarReporte(reporte);
         return reporteRepository.save(reporte);
@@ -89,13 +71,6 @@ public class ReporteServiceImpl implements ReporteService {
             return false;
         }
         return reporteRepository.existsById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Reporte> obtenerPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
-        validarPeriodo(fechaInicio, fechaFin);
-        return reporteRepository.findByFechaGeneracionBetween(fechaInicio, fechaFin);
     }
 
     // ==================== GENERACIÓN DE REPORTES ====================
@@ -129,106 +104,6 @@ public class ReporteServiceImpl implements ReporteService {
         return guardar(reporte);
     }
 
-    @Override
-    public Reporte generarReporteAnalisisDemografico(Integer analistaId, LocalDate fechaInicio, LocalDate fechaFin) {
-        validarParametrosReporte(analistaId, fechaInicio, fechaFin);
-
-        List<Map<String, Object>> datos = reporteRepository.obtenerAnalisisDemografico(fechaInicio, fechaFin);
-
-        JsonObject parametros = new JsonObject();
-        parametros.addProperty("fechaInicio", fechaInicio.toString());
-        parametros.addProperty("fechaFin", fechaFin.toString());
-
-        Reporte reporte = new Reporte();
-        reporte.setAnalistaId(analistaId);
-        reporte.setTitulo("Análisis Demográfico");
-        reporte.setDescripcion("Análisis demográfico de usuarios por género y edad del " +
-                              fechaInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " al " +
-                              fechaFin.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        reporte.setTipoReporte(Reporte.TipoReporte.ANALISIS_DEMOGRAFICO);
-        reporte.setParametros(parametros.toString());
-        reporte.setResultados(gson.toJson(datos));
-        reporte.setPeriodoInicio(fechaInicio);
-        reporte.setPeriodoFin(fechaFin);
-
-        return guardar(reporte);
-    }
-
-    @Override
-    public Reporte generarReporteRendimientoGeneros(Integer analistaId, LocalDate fechaInicio, LocalDate fechaFin) {
-        validarParametrosReporte(analistaId, fechaInicio, fechaFin);
-
-        List<Map<String, Object>> datos = reporteRepository.obtenerRendimientoGeneros(fechaInicio, fechaFin);
-
-        JsonObject parametros = new JsonObject();
-        parametros.addProperty("fechaInicio", fechaInicio.toString());
-        parametros.addProperty("fechaFin", fechaFin.toString());
-
-        Reporte reporte = new Reporte();
-        reporte.setAnalistaId(analistaId);
-        reporte.setTitulo("Rendimiento de Géneros");
-        reporte.setDescripcion("Análisis de rendimiento por géneros cinematográficos del " +
-                              fechaInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " al " +
-                              fechaFin.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        reporte.setTipoReporte(Reporte.TipoReporte.RENDIMIENTO_GENEROS);
-        reporte.setParametros(parametros.toString());
-        reporte.setResultados(gson.toJson(datos));
-        reporte.setPeriodoInicio(fechaInicio);
-        reporte.setPeriodoFin(fechaFin);
-
-        return guardar(reporte);
-    }
-
-    @Override
-    public Reporte generarReporteTendenciasTemporales(Integer analistaId, LocalDate fechaInicio, LocalDate fechaFin) {
-        validarParametrosReporte(analistaId, fechaInicio, fechaFin);
-
-        List<Map<String, Object>> datos = reporteRepository.obtenerTendenciasTemporales(fechaInicio, fechaFin);
-
-        JsonObject parametros = new JsonObject();
-        parametros.addProperty("fechaInicio", fechaInicio.toString());
-        parametros.addProperty("fechaFin", fechaFin.toString());
-
-        Reporte reporte = new Reporte();
-        reporte.setAnalistaId(analistaId);
-        reporte.setTitulo("Tendencias Temporales");
-        reporte.setDescripcion("Análisis de tendencias de alquileres por período del " +
-                              fechaInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " al " +
-                              fechaFin.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        reporte.setTipoReporte(Reporte.TipoReporte.TENDENCIAS_TEMPORALES);
-        reporte.setParametros(parametros.toString());
-        reporte.setResultados(gson.toJson(datos));
-        reporte.setPeriodoInicio(fechaInicio);
-        reporte.setPeriodoFin(fechaFin);
-
-        return guardar(reporte);
-    }
-
-    @Override
-    public Reporte generarReporteComportamientoUsuarios(Integer analistaId, LocalDate fechaInicio, LocalDate fechaFin) {
-        validarParametrosReporte(analistaId, fechaInicio, fechaFin);
-
-        List<Map<String, Object>> datos = reporteRepository.obtenerComportamientoUsuarios(fechaInicio, fechaFin);
-
-        JsonObject parametros = new JsonObject();
-        parametros.addProperty("fechaInicio", fechaInicio.toString());
-        parametros.addProperty("fechaFin", fechaFin.toString());
-
-        Reporte reporte = new Reporte();
-        reporte.setAnalistaId(analistaId);
-        reporte.setTitulo("Comportamiento de Usuarios");
-        reporte.setDescripcion("Análisis de patrones de comportamiento de usuarios del " +
-                              fechaInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " al " +
-                              fechaFin.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        reporte.setTipoReporte(Reporte.TipoReporte.COMPORTAMIENTO_USUARIOS);
-        reporte.setParametros(parametros.toString());
-        reporte.setResultados(gson.toJson(datos));
-        reporte.setPeriodoInicio(fechaInicio);
-        reporte.setPeriodoFin(fechaFin);
-
-        return guardar(reporte);
-    }
-
     // ==================== ANALYTICS Y CONSULTAS ====================
 
     @Override
@@ -254,43 +129,6 @@ public class ReporteServiceImpl implements ReporteService {
             throw new IllegalArgumentException("El límite debe estar entre 1 y 50");
         }
         return reporteRepository.obtenerCategoriasPopulares(limite);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> obtenerContenidosMejorCalificados(int limite) {
-        if (limite <= 0 || limite > 100) {
-            throw new IllegalArgumentException("El límite debe estar entre 1 y 100");
-        }
-        return reporteRepository.obtenerContenidosMejorCalificados(limite);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> obtenerAnalisisDemografico(LocalDate fechaInicio, LocalDate fechaFin) {
-        validarPeriodo(fechaInicio, fechaFin);
-        return reporteRepository.obtenerAnalisisDemografico(fechaInicio, fechaFin);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> obtenerRendimientoGeneros(LocalDate fechaInicio, LocalDate fechaFin) {
-        validarPeriodo(fechaInicio, fechaFin);
-        return reporteRepository.obtenerRendimientoGeneros(fechaInicio, fechaFin);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> obtenerTendenciasTemporales(LocalDate fechaInicio, LocalDate fechaFin) {
-        validarPeriodo(fechaInicio, fechaFin);
-        return reporteRepository.obtenerTendenciasTemporales(fechaInicio, fechaFin);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> obtenerComportamientoUsuarios(LocalDate fechaInicio, LocalDate fechaFin) {
-        validarPeriodo(fechaInicio, fechaFin);
-        return reporteRepository.obtenerComportamientoUsuarios(fechaInicio, fechaFin);
     }
 
     // ==================== MÉTODOS DE VALIDACIÓN ====================

@@ -73,21 +73,6 @@ public class ReporteRepositoryImpl implements ReporteRepository {
         }
     }
 
-    public List<Reporte> findByAnalistaId(Integer analistaId) {
-        return jdbcTemplate.query(
-                "SELECT * FROM reporte WHERE analista_id = ? ORDER BY fecha_generacion DESC",
-                reporteRowMapper,
-                analistaId
-        );
-    }
-
-    public List<Reporte> findByTipoReporte(Reporte.TipoReporte tipo) {
-        return jdbcTemplate.query(
-                "SELECT * FROM reporte WHERE tipo_reporte = ? ORDER BY fecha_generacion DESC",
-                reporteRowMapper,
-                tipo.name()
-        );
-    }
 
     public Reporte save(Reporte reporte) {
         if (reporte.getId() == 0) {
@@ -183,78 +168,6 @@ public class ReporteRepositoryImpl implements ReporteRepository {
         );
     }
 
-    /**
-     * Análisis demográfico de usuarios por edad
-     */
-    public List<Map<String, Object>> obtenerAnalisisDemografico(LocalDate fechaInicio, LocalDate fechaFin) {
-        return jdbcTemplate.queryForList(
-                "SELECT FLOOR(DATEDIFF(CURDATE(), u.fecha_nacimiento) / 365.25) as rango_edad, " +
-                "COUNT(DISTINCT a.id) as total_alquileres, " +
-                "COUNT(DISTINCT u.id) as total_usuarios " +
-                "FROM usuario u " +
-                "INNER JOIN alquiler a ON u.id = a.usuario_id " +
-                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
-                "GROUP BY rango_edad " +
-                "ORDER BY total_alquileres DESC",
-                fechaInicio, fechaFin
-        );
-    }
-
-    /**
-     * Rendimiento de géneros por período
-     */
-    public List<Map<String, Object>> obtenerRendimientoGeneros(LocalDate fechaInicio, LocalDate fechaFin) {
-        return jdbcTemplate.queryForList(
-                "SELECT c.genero, " +
-                "COUNT(a.id) as total_alquileres, " +
-                "SUM(a.precio) as ingresos_totales, " +
-                "AVG(r.calificacion) as calificacion_promedio, " +
-                "COUNT(DISTINCT c.id) as contenidos_diferentes " +
-                "FROM contenido c " +
-                "INNER JOIN alquiler a ON c.id = a.contenido_id " +
-                "LEFT JOIN resena r ON c.id = r.contenido_id " +
-                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
-                "GROUP BY c.genero " +
-                "ORDER BY ingresos_totales DESC",
-                fechaInicio, fechaFin
-        );
-    }
-
-    /**
-     * Tendencias temporales de alquileres
-     */
-    public List<Map<String, Object>> obtenerTendenciasTemporales(LocalDate fechaInicio, LocalDate fechaFin) {
-        return jdbcTemplate.queryForList(
-                "SELECT DATE_FORMAT(a.fecha_inicio, '%Y-%m') as periodo, " +
-                "COUNT(a.id) as total_alquileres, " +
-                "SUM(a.precio) as ingresos, " +
-                "COUNT(DISTINCT a.usuario_id) as usuarios_activos " +
-                "FROM alquiler a " +
-                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
-                "GROUP BY periodo " +
-                "ORDER BY periodo ASC",
-                fechaInicio, fechaFin
-        );
-    }
-
-    /**
-     * Comportamiento de usuarios - frecuencia de alquiler
-     */
-    public List<Map<String, Object>> obtenerComportamientoUsuarios(LocalDate fechaInicio, LocalDate fechaFin) {
-        return jdbcTemplate.queryForList(
-                "SELECT u.id, u.nombre, u.email, " +
-                "COUNT(a.id) as total_alquileres, " +
-                "SUM(a.precio) as gasto_total, " +
-                "AVG(a.precio) as gasto_promedio, " +
-                "MAX(a.fecha_inicio) as ultimo_alquiler " +
-                "FROM usuario u " +
-                "INNER JOIN alquiler a ON u.id = a.usuario_id " +
-                "WHERE a.fecha_inicio BETWEEN ? AND ? " +
-                "GROUP BY u.id, u.nombre, u.email " +
-                "ORDER BY total_alquileres DESC",
-                fechaInicio, fechaFin
-        );
-    }
 
     /**
      * Estadísticas generales del sistema
@@ -287,35 +200,6 @@ public class ReporteRepositoryImpl implements ReporteRepository {
                 "ORDER BY total_alquileres DESC " +
                 "LIMIT ?",
                 limite
-        );
-    }
-
-    /**
-     * Contenidos con mejores calificaciones
-     */
-    public List<Map<String, Object>> obtenerContenidosMejorCalificados(int limite) {
-        return jdbcTemplate.queryForList(
-                "SELECT c.id, c.titulo, c.tipo, c.genero, " +
-                "AVG(r.calificacion) as calificacion_promedio, " +
-                "COUNT(r.id) as total_resenas " +
-                "FROM contenido c " +
-                "INNER JOIN resena r ON c.id = r.contenido_id " +
-                "GROUP BY c.id, c.titulo, c.tipo, c.genero " +
-                "HAVING total_resenas >= 5 " +
-                "ORDER BY calificacion_promedio DESC " +
-                "LIMIT ?",
-                limite
-        );
-    }
-
-    /**
-     * Búsqueda de reportes por fecha
-     */
-    public List<Reporte> findByFechaGeneracionBetween(LocalDate fechaInicio, LocalDate fechaFin) {
-        return jdbcTemplate.query(
-                "SELECT * FROM reporte WHERE fecha_generacion BETWEEN ? AND ? ORDER BY fecha_generacion DESC",
-                reporteRowMapper,
-                fechaInicio, fechaFin
         );
     }
 }

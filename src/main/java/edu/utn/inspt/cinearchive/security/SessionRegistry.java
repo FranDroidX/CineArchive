@@ -35,7 +35,7 @@ public class SessionRegistry {
         if (userId == null || session == null) return;
         sessionsByUser.compute(userId, (k, set) -> {
             if (set == null) {
-                set = Collections.newSetFromMap(new ConcurrentHashMap<HttpSession, Boolean>());
+                set = Collections.newSetFromMap(new ConcurrentHashMap<>());
             }
             set.add(session);
             return set;

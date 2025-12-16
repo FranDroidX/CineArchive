@@ -28,7 +28,7 @@ public class AlquilerMaintenanceScheduler {
     }
 
     // Corre cada minuto
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(fixedDelay = 21600_000)
     @Transactional
     public void finalizarAlquileresVencidos() {
         try {

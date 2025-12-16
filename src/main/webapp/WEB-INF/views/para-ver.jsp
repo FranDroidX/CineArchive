@@ -21,10 +21,16 @@
     <p class="page-subtitle">Organiza tu próximo contenido a ver</p>
     <!-- Contador (si hay datos) -->
     <c:set var="totalPV" value="${not empty contenidos ? fn:length(contenidos) : 0}"/>
+    <c:set var="peliculasCount" value="0"/>
+    <c:set var="seriesCount" value="0"/>
+    <c:forEach var="item" items="${contenidos}">
+        <c:if test="${item.tipo.name() == 'PELICULA'}"><c:set var="peliculasCount" value="${peliculasCount + 1}"/></c:if>
+        <c:if test="${item.tipo.name() == 'SERIE'}"><c:set var="seriesCount" value="${seriesCount + 1}"/></c:if>
+    </c:forEach>
     <div class="watchlist-stats">
         <div class="stat-item"><span class="stat-number">${totalPV}</span><span class="stat-label">Total en lista</span></div>
-        <div class="stat-item"><span class="stat-number">—</span><span class="stat-label">Películas</span></div>
-        <div class="stat-item"><span class="stat-number">—</span><span class="stat-label">Series</span></div>
+        <div class="stat-item"><span class="stat-number">${peliculasCount}</span><span class="stat-label">Películas</span></div>
+        <div class="stat-item"><span class="stat-number">${seriesCount}</span><span class="stat-label">Series</span></div>
     </div>
     <!-- Filtros visuales (sin funcionalidad backend aún) -->
     <div class="filter-bar">

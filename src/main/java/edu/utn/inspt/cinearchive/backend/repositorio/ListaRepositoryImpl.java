@@ -114,6 +114,10 @@ public class ListaRepositoryImpl implements ListaRepository {
             c.setGenero(rs.getString("genero"));
             c.setAnio((Integer) rs.getObject("anio"));
             c.setPrecioAlquiler(rs.getBigDecimal("precio_alquiler"));
+            String tipo = rs.getString("tipo");
+            if (tipo != null) {
+                try { c.setTipo(Contenido.Tipo.valueOf(tipo)); } catch (IllegalArgumentException ignored) {}
+            }
             return c;
         });
     }
